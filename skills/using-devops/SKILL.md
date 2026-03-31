@@ -36,7 +36,7 @@ Invoke `claude-devops-plugin:infrastructure` when you encounter ANY of:
 Invoke `claude-devops-plugin:setup-devops-config` when you encounter ANY of:
 - User asks to create, generate, or set up `.devops.yaml`
 - User says "configure the plugin" or "set up devops config"
-- No `.devops.yaml` exists and the user is setting up the plugin for the first time
+- No `.devops.yaml` exists and the user expresses intent to configure or set up the plugin
 
 ## Universal Safety Rules (NON-NEGOTIABLE)
 
