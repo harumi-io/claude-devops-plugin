@@ -1,0 +1,39 @@
+# Default DevOps plugin configuration
+# Override per-repo by placing a .devops.yaml in your repository root
+
+cloud:
+  provider: aws                    # aws | gcp | azure
+  region: us-east-2
+  account_alias: harumi
+
+terraform:
+  version: "1.5.7"
+  state_backend: s3
+  var_file: prod.tfvars
+
+kubernetes:
+  tool: kubectl                    # kubectl | oc (openshift)
+  gitops: argocd                   # argocd | flux | none
+  clusters:
+    - name: eks-dev
+      context: eks-dev
+    - name: eks-prod
+      context: eks-prod
+
+cicd:
+  platform: github-actions         # github-actions | gitlab-ci | circleci
+
+observability:
+  metrics: prometheus              # prometheus | datadog | cloudwatch
+  dashboards: grafana
+  logs: loki                       # loki | cloudwatch | datadog
+  traces: tempo                    # tempo | jaeger | xray
+
+containers:
+  runtime: docker                  # docker | podman | nerdctl
+  registry: ecr                    # ecr | gcr | dockerhub | ghcr
+
+naming:
+  pattern: "{namespace}-{stage}-{name}"
+  namespace: harumi
+  stage: production
