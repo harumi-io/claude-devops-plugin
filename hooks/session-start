@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# SessionStart hook for claude-devops-plugin
+# Loads the bootstrap skill and merges .devops.yaml config
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# --- Read bootstrap skill ---
+using_devops_content=$(cat "${PLUGIN_ROOT}/skills/using-devops/SKILL.md" 2>&1 || echo "Error reading using-devops skill")
+
+# --- Merge .devops.yaml config ---
+# Look for .devops.yaml in the current working directory, fall back to plugin defaults
+user_config=""
+default_config_path="${PLUGIN_ROOT}/config/default.devops.yaml"
+repo_config_path="${PWD}/.devops.yaml"
+
+if [ -f "$repo_config_path" ]; then
+    user_config=$(cat "$repo_config_path" 2>/dev/null || true)
+    config_source="repo (.devops.yaml)"
+else
+    user_config=$(cat "$default_config_path" 2>/dev/null || true)
+    config_source="plugin defaults"
+fi
+
+# --- Build context ---
+config_block="## Active Configuration (source: ${config_source})\n\n\`\`\`yaml\n${user_config}\n\`\`\`"
+
+# --- Escape for JSON ---
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+using_devops_escaped=$(escape_for_json "$using_devops_content")
+config_escaped=$(escape_for_json "$config_block")
+session_context="<IMPORTANT>\nYou have the claude-devops-plugin installed.\n\n**Below is the bootstrap skill. For all other skills, use the 'Skill' tool:**\n\n${using_devops_escaped}\n\n${config_escaped}\n</IMPORTANT>"
+
+# --- Platform-specific output ---
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+    printf '{\n  "additional_context": "%s"\n}\n' "$session_context"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+    printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$session_context"
+else
+    printf '{\n  "additional_context": "%s"\n}\n' "$session_context"
+fi
+
+exit 0

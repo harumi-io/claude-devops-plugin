@@ -1,0 +1,26 @@
+{
+  "name": "claude-devops-plugin",
+  "displayName": "Claude DevOps Plugin",
+  "description": "DevOps skills for infrastructure, Kubernetes, CI/CD, and cloud operations",
+  "version": "0.1.0",
+  "author": {
+    "name": "Harumi.io",
+    "email": "devops@harumi.io"
+  },
+  "homepage": "https://github.com/harumi-io/claude-devops-plugin",
+  "repository": "https://github.com/harumi-io/claude-devops-plugin",
+  "license": "MIT",
+  "keywords": [
+    "devops",
+    "infrastructure",
+    "terraform",
+    "kubernetes",
+    "aws",
+    "gcp",
+    "azure",
+    "cicd"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/hooks-cursor.json"
+}
