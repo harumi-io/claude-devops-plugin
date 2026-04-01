@@ -1,0 +1,36 @@
+{
+  "skill_name": "create-iam-user",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a new developer user for João Silva.",
+      "expected_output": "Creates iam/users/joao-silva/ directory with main.tf, variables.tf, outputs.tf. Adds module block to iam/main.tf with developers_group_name. Runs terraform validate and plan. Ends with apply handoff.",
+      "files": [],
+      "expectations": [
+        "Derives user_name as joao.silva",
+        "Derives directory name as joao-silva",
+        "Creates main.tf referencing iam-developer-user module with groups = [var.developers_group_name]",
+        "Creates variables.tf declaring developers_group_name variable",
+        "Creates outputs.tf with user_name, user_arn, user_unique_id",
+        "Adds module iam_users_joao_silva to iam/main.tf passing developers_group_name",
+        "Runs terraform validate",
+        "Runs terraform plan -var-file=prod.tfvars",
+        "Does NOT run terraform apply",
+        "Ends with apply handoff block"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add André Costa as both developer and admin.",
+      "expected_output": "Creates user with both groups. variables.tf declares both developers_group_name and admin_group_name. Module block passes both group variables.",
+      "files": [],
+      "expectations": [
+        "Derives user_name as andre.costa",
+        "Creates main.tf with groups = [var.developers_group_name, var.admin_group_name]",
+        "Creates variables.tf declaring both developers_group_name and admin_group_name",
+        "Adds module to iam/main.tf passing both group name variables",
+        "Does NOT run terraform apply"
+      ]
+    }
+  ]
+}
