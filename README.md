@@ -7,12 +7,24 @@ DevOps skills for [Claude Code](https://claude.ai/code), [Cursor](https://cursor
 ### Claude Code
 
 ```bash
-claude plugin add harumi-io/harumi-devops-plugin
+/plugin install harumi-devops-plugin@harumi-devops-marketplace
+```
+
+If you haven't registered the marketplace yet:
+
+```bash
+/plugin marketplace add harumi-io/harumi-devops-marketplace
 ```
 
 ### Cursor
 
-Clone the repository and add the plugin path in Cursor settings.
+In Cursor Agent chat:
+
+```text
+/add-plugin harumi-devops-plugin
+```
+
+Or search for "harumi-devops-plugin" in the plugin marketplace.
 
 ### GitHub Copilot
 
