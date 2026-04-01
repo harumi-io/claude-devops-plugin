@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "harumi-devops-plugin",
-      "source": ".",
+      "source": "./",
       "description": "DevOps skills for infrastructure, Kubernetes, CI/CD, and cloud operations",
       "version": "0.3.0",
       "license": "MIT",
