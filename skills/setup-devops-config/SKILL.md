@@ -26,7 +26,7 @@ Use Glob and Grep tools to detect each field. Record confident values and a list
 | `terraform.state_backend` | Grep `**/backend.tf`, `**/*.tf` for `backend "s3"` / `backend "gcs"` / `backend "azurerm"` | ask |
 | `terraform.var_file` | Glob `**/*.tfvars`; prefer `prod.tfvars` → `production.tfvars` → first match | ask |
 | `kubernetes.tool` | Default `kubectl`; Grep CI/CD configs for `oc ` (OpenShift) | `kubectl` |
-| `kubernetes.gitops` | Glob `**/Application.yaml` with `kind: Application` (ArgoCD); `**/HelmRelease.yaml` (Flux) | `none` |
+| `kubernetes.gitops` | Glob `**/Application.yaml` with `kind: Application` (ArgoCD) | `none` |
 | `kubernetes.clusters` | Grep K8s manifests, CI/CD configs for cluster names or `--context` flags | ask if k8s detected, else omit |
 | `kubernetes.gitops_repo` | Grep ArgoCD Application manifests for `repoURL` pointing to a K8s repo | ask |
 | `kubernetes.app_of_apps` | Glob `**/bootstrap/*-app.yaml` with `kind: Application` | ask if argocd detected |
@@ -60,7 +60,8 @@ Run these read-only commands to verify access:
 
 ```bash
 kubectl config get-contexts
-kubectl get namespaces
+# For each context detected above:
+kubectl get namespaces --context <context>
 ```
 
 **If kubectl is not available or contexts are not configured:**
@@ -74,7 +75,7 @@ argocd app list --output name 2>/dev/null || echo "argocd CLI not available"
 helm list --all-namespaces 2>/dev/null || echo "helm CLI not available"
 ```
 
-Use the results to populate `namespaces`, cross-reference ArgoCD apps with repo manifests, and detect Helm releases.
+Use the results to populate `namespaces` as a flat list across all reachable contexts, cross-reference ArgoCD apps with repo manifests, and detect Helm releases. Run the secondary commands (argocd, helm) once per detected context.
 
 ### Step 2: Ask about unknowns
 
