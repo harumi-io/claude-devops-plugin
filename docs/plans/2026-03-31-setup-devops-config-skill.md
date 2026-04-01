@@ -31,7 +31,7 @@ Write `skills/setup-devops-config/SKILL.md` with this exact content:
 ```markdown
 ---
 name: setup-devops-config
-description: "Generate a .devops.yaml configuration file for the claude-devops-plugin by analyzing the current repository. Use when: the user asks to create, generate, or set up .devops.yaml, or when no .devops.yaml exists and the user is configuring the plugin for a new repo."
+description: "Generate a .devops.yaml configuration file for the harumi-devops-plugin by analyzing the current repository. Use when: the user asks to create, generate, or set up .devops.yaml, or when no .devops.yaml exists and the user is configuring the plugin for a new repo."
 ---
 
 # Setup DevOps Config
@@ -168,7 +168,7 @@ Expected output:
 ```
 ---
 name: setup-devops-config
-description: "Generate a .devops.yaml configuration file for the claude-devops-plugin by analyzing the current repository. Use when: the user asks to create, generate, or set up .devops.yaml, or when no .devops.yaml exists and the user is configuring the plugin for a new repo."
+description: "Generate a .devops.yaml configuration file for the harumi-devops-plugin by analyzing the current repository. Use when: the user asks to create, generate, or set up .devops.yaml, or when no .devops.yaml exists and the user is configuring the plugin for a new repo."
 ---
 ```
 
@@ -191,7 +191,7 @@ The current Available Skills table (lines 14-16) is:
 ```markdown
 | Skill | Trigger | Use When |
 |-------|---------|----------|
-| `claude-devops-plugin:infrastructure` | `.tf` files, Terraform, AWS/GCP/Azure infra | Creating, modifying, or reviewing Terraform/IaC configurations |
+| `harumi-devops-plugin:devops` | `.tf` files, Terraform, AWS/GCP/Azure infra | Creating, modifying, or reviewing Terraform/IaC configurations |
 ```
 
 The current Trigger Rules section (lines 28-34) is:
@@ -199,7 +199,7 @@ The current Trigger Rules section (lines 28-34) is:
 ```markdown
 ## Trigger Rules
 
-Invoke `claude-devops-plugin:infrastructure` when you encounter ANY of:
+Invoke `harumi-devops-plugin:devops` when you encounter ANY of:
 - `.tf` files or Terraform discussions
 - AWS, GCP, or Azure infrastructure tasks
 - IaC changes, module creation, state management
@@ -214,8 +214,8 @@ Replace the Available Skills table:
 ```markdown
 | Skill | Trigger | Use When |
 |-------|---------|----------|
-| `claude-devops-plugin:infrastructure` | `.tf` files, Terraform, AWS/GCP/Azure infra | Creating, modifying, or reviewing Terraform/IaC configurations |
-| `claude-devops-plugin:setup-devops-config` | User asks to create/set up `.devops.yaml`; no config exists | Setting up the plugin for a new repo |
+| `harumi-devops-plugin:devops` | `.tf` files, Terraform, AWS/GCP/Azure infra | Creating, modifying, or reviewing Terraform/IaC configurations |
+| `harumi-devops-plugin:setup-devops-config` | User asks to create/set up `.devops.yaml`; no config exists | Setting up the plugin for a new repo |
 ```
 
 - [ ] **Step 2: Add trigger rule for setup-devops-config**
@@ -225,14 +225,14 @@ Replace the Trigger Rules section:
 ```markdown
 ## Trigger Rules
 
-Invoke `claude-devops-plugin:infrastructure` when you encounter ANY of:
+Invoke `harumi-devops-plugin:devops` when you encounter ANY of:
 - `.tf` files or Terraform discussions
 - AWS, GCP, or Azure infrastructure tasks
 - IaC changes, module creation, state management
 - Infrastructure migrations or zero-downtime changes
 - Cost or security review of cloud resources
 
-Invoke `claude-devops-plugin:setup-devops-config` when you encounter ANY of:
+Invoke `harumi-devops-plugin:setup-devops-config` when you encounter ANY of:
 - User asks to create, generate, or set up `.devops.yaml`
 - User says "configure the plugin" or "set up devops config"
 - No `.devops.yaml` exists and the user is setting up the plugin for the first time

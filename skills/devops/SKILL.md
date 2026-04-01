@@ -1,5 +1,5 @@
 ---
-name: infrastructure
+name: devops
 description: "Write and manage Terraform/IaC infrastructure code following project conventions. Use when: (1) Creating, modifying, or reviewing Terraform configurations, (2) Working with cloud infrastructure (AWS, GCP, Azure), (3) Managing IaC changes across modules, (4) Planning infrastructure migrations or zero-downtime changes, (5) Reviewing security patterns, cost implications, or naming conventions."
 ---
 

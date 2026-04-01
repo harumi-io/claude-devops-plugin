@@ -1,4 +1,4 @@
-# Claude DevOps Plugin
+# Harumi DevOps Plugin
 
 DevOps skills for [Claude Code](https://claude.ai/code), [Cursor](https://cursor.com), and GitHub Copilot. Provides infrastructure, Kubernetes, CI/CD, and cloud operations guidance through an extensible skill system.
 
@@ -7,7 +7,7 @@ DevOps skills for [Claude Code](https://claude.ai/code), [Cursor](https://cursor
 ### Claude Code
 
 ```bash
-claude plugin add harumi-io/claude-devops-plugin
+claude plugin add harumi-io/harumi-devops-plugin
 ```
 
 ### Cursor
@@ -48,7 +48,7 @@ If no `.devops.yaml` is found, the plugin uses its built-in defaults.
 
 | Skill | Description |
 |-------|-------------|
-| `infrastructure` | Terraform/IaC management with multi-provider support (AWS, GCP, Azure) |
+| `devops` | Terraform/IaC management with multi-provider support (AWS, GCP, Azure) |
 
 ### Planned
 

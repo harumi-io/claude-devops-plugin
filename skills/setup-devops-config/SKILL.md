@@ -1,6 +1,6 @@
 ---
 name: setup-devops-config
-description: "Generate a .devops.yaml configuration file for the claude-devops-plugin by analyzing the current repository. Use when: the user asks to create, generate, or set up .devops.yaml, or when no .devops.yaml exists and the user is configuring the plugin for a new repo."
+description: "Generate a .devops.yaml configuration file for the harumi-devops-plugin by analyzing the current repository. Use when: the user asks to create, generate, or set up .devops.yaml, or when no .devops.yaml exists and the user is configuring the plugin for a new repo."
 ---
 
 # Setup DevOps Config

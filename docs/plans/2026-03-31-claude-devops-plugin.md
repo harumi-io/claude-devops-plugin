@@ -1,10 +1,10 @@
-# Claude DevOps Plugin Implementation Plan
+# Harumi DevOps Plugin Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a Claude Code plugin that provides DevOps-oriented skills for infrastructure management, mirroring the superpowers plugin architecture, with an MVP of the infrastructure skill ported from harumi-io/infrastructure.
+**Goal:** Build a Claude Code plugin that provides DevOps-oriented skills for infrastructure management, mirroring the superpowers plugin architecture, with an MVP of the devops skill ported from harumi-io/infrastructure.
 
-**Architecture:** Plugin follows the superpowers pattern — `.claude-plugin/plugin.json` manifest, session-start hook that injects a bootstrap skill, and individual skills under `skills/`. Configuration is driven by a `.devops.yaml` file in the user's repo root, merged with plugin defaults at session start. The infrastructure skill is generalized from the existing Harumi-specific devops skill to support AWS/GCP/Azure via config.
+**Architecture:** Plugin follows the superpowers pattern — `.claude-plugin/plugin.json` manifest, session-start hook that injects a bootstrap skill, and individual skills under `skills/`. Configuration is driven by a `.devops.yaml` file in the user's repo root, merged with plugin defaults at session start. The devops skill is generalized from the existing Harumi-specific devops skill to support AWS/GCP/Azure via config.
 
 **Tech Stack:** Bash (session-start hook), Markdown (SKILL.md files), JSON (plugin manifests), YAML (config)
 
@@ -13,7 +13,7 @@
 ## File Structure
 
 ```
-claude-devops-plugin/
+harumi-devops-plugin/
 ├── .claude-plugin/
 │   └── plugin.json                          # Claude Code manifest
 ├── .cursor-plugin/
@@ -58,15 +58,15 @@ claude-devops-plugin/
 
 ```json
 {
-  "name": "claude-devops-plugin",
+  "name": "harumi-devops-plugin",
   "description": "DevOps skills for infrastructure, Kubernetes, CI/CD, and cloud operations",
   "version": "0.1.0",
   "author": {
     "name": "Harumi.io",
     "email": "devops@harumi.io"
   },
-  "homepage": "https://github.com/harumi-io/claude-devops-plugin",
-  "repository": "https://github.com/harumi-io/claude-devops-plugin",
+  "homepage": "https://github.com/harumi-io/harumi-devops-plugin",
+  "repository": "https://github.com/harumi-io/harumi-devops-plugin",
   "license": "MIT",
   "keywords": [
     "devops",
@@ -85,16 +85,16 @@ claude-devops-plugin/
 
 ```json
 {
-  "name": "claude-devops-plugin",
-  "displayName": "Claude DevOps Plugin",
+  "name": "harumi-devops-plugin",
+  "displayName": "Harumi DevOps Plugin",
   "description": "DevOps skills for infrastructure, Kubernetes, CI/CD, and cloud operations",
   "version": "0.1.0",
   "author": {
     "name": "Harumi.io",
     "email": "devops@harumi.io"
   },
-  "homepage": "https://github.com/harumi-io/claude-devops-plugin",
-  "repository": "https://github.com/harumi-io/claude-devops-plugin",
+  "homepage": "https://github.com/harumi-io/harumi-devops-plugin",
+  "repository": "https://github.com/harumi-io/harumi-devops-plugin",
   "license": "MIT",
   "keywords": [
     "devops",
@@ -116,7 +116,7 @@ claude-devops-plugin/
 
 ```json
 {
-  "name": "claude-devops-plugin",
+  "name": "harumi-devops-plugin",
   "version": "0.1.0",
   "type": "module"
 }
@@ -261,7 +261,7 @@ git commit -m "feat: add default .devops.yaml configuration"
 
 ```bash
 #!/usr/bin/env bash
-# SessionStart hook for claude-devops-plugin
+# SessionStart hook for harumi-devops-plugin
 # Loads the bootstrap skill and merges .devops.yaml config
 
 set -euo pipefail
@@ -302,7 +302,7 @@ escape_for_json() {
 
 using_devops_escaped=$(escape_for_json "$using_devops_content")
 config_escaped=$(escape_for_json "$config_block")
-session_context="<IMPORTANT>\nYou have the claude-devops-plugin installed.\n\n**Below is the bootstrap skill. For all other skills, use the 'Skill' tool:**\n\n${using_devops_escaped}\n\n${config_escaped}\n</IMPORTANT>"
+session_context="<IMPORTANT>\nYou have the harumi-devops-plugin installed.\n\n**Below is the bootstrap skill. For all other skills, use the 'Skill' tool:**\n\n${using_devops_escaped}\n\n${config_escaped}\n</IMPORTANT>"
 
 # --- Platform-specific output ---
 if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
@@ -349,12 +349,12 @@ git commit -m "feat: add session-start hook with config loading and platform det
 ```markdown
 ---
 name: using-devops
-description: "Bootstrap skill for claude-devops-plugin. Injected at session start. Announces available DevOps skills, loads repo config, defines trigger rules, and enforces safety rules for infrastructure operations."
+description: "Bootstrap skill for harumi-devops-plugin. Injected at session start. Announces available DevOps skills, loads repo config, defines trigger rules, and enforces safety rules for infrastructure operations."
 ---
 
 # DevOps Plugin
 
-You have the **claude-devops-plugin** installed. This plugin provides DevOps-oriented skills for infrastructure, Kubernetes, CI/CD, and cloud operations.
+You have the **harumi-devops-plugin** installed. This plugin provides DevOps-oriented skills for infrastructure, Kubernetes, CI/CD, and cloud operations.
 
 ## Available Skills
 
@@ -362,7 +362,7 @@ Use the Skill tool to invoke these when triggered:
 
 | Skill | Trigger | Use When |
 |-------|---------|----------|
-| `claude-devops-plugin:infrastructure` | `.tf` files, Terraform, AWS/GCP/Azure infra | Creating, modifying, or reviewing Terraform/IaC configurations |
+| `harumi-devops-plugin:devops` | `.tf` files, Terraform, AWS/GCP/Azure infra | Creating, modifying, or reviewing Terraform/IaC configurations |
 
 **Future skills** (not yet available):
 - `kubernetes` — K8s manifests, Helm charts, ArgoCD/Flux
@@ -374,7 +374,7 @@ Use the Skill tool to invoke these when triggered:
 
 ## Trigger Rules
 
-Invoke `claude-devops-plugin:infrastructure` when you encounter ANY of:
+Invoke `harumi-devops-plugin:devops` when you encounter ANY of:
 - `.tf` files or Terraform discussions
 - AWS, GCP, or Azure infrastructure tasks
 - IaC changes, module creation, state management
@@ -594,7 +594,7 @@ Consult these based on the task:
 
 ```bash
 git add skills/infrastructure/SKILL.md
-git commit -m "feat: add infrastructure skill main SKILL.md"
+git commit -m "feat: add devops skill main SKILL.md"
 ```
 
 ---
@@ -1946,7 +1946,7 @@ git commit -m "feat: add infrastructure security patterns reference (multi-provi
 - [ ] **Step 1: Create `README.md`**
 
 ```markdown
-# Claude DevOps Plugin
+# Harumi DevOps Plugin
 
 DevOps skills for [Claude Code](https://claude.ai/code), [Cursor](https://cursor.com), and GitHub Copilot. Provides infrastructure, Kubernetes, CI/CD, and cloud operations guidance through an extensible skill system.
 
@@ -1955,7 +1955,7 @@ DevOps skills for [Claude Code](https://claude.ai/code), [Cursor](https://cursor
 ### Claude Code
 
 ```bash
-claude plugin add harumi-io/claude-devops-plugin
+claude plugin add harumi-io/harumi-devops-plugin
 ```
 
 ### Cursor

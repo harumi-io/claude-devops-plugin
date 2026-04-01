@@ -4,20 +4,20 @@
     {
       "id": 1,
       "prompt": "I have a main.tf file and I want to add a new ECS service to my AWS infrastructure. Where do I start?",
-      "expected_output": "Recognizes the .tf file mention and infrastructure context. Invokes or references the claude-devops-plugin:infrastructure skill to guide the work.",
+      "expected_output": "Recognizes the .tf file mention and infrastructure context. Invokes or references the harumi-devops-plugin:devops skill to guide the work.",
       "files": [],
       "expectations": [
-        "Invokes or references the infrastructure skill (claude-devops-plugin:infrastructure)",
+        "Invokes or references the infrastructure skill (harumi-devops-plugin:devops)",
         "Does not attempt to answer the Terraform question without consulting the infrastructure skill"
       ]
     },
     {
       "id": 2,
       "prompt": "I don't have a .devops.yaml yet. Can you help me configure the plugin for this repo?",
-      "expected_output": "Recognizes the request to set up the devops config. Invokes the claude-devops-plugin:setup-devops-config skill.",
+      "expected_output": "Recognizes the request to set up the devops config. Invokes the harumi-devops-plugin:setup-devops-config skill.",
       "files": [],
       "expectations": [
-        "Invokes or references the setup-devops-config skill (claude-devops-plugin:setup-devops-config)"
+        "Invokes or references the setup-devops-config skill (harumi-devops-plugin:setup-devops-config)"
       ]
     },
     {

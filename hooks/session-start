@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SessionStart hook for claude-devops-plugin
+# SessionStart hook for harumi-devops-plugin
 # Loads the bootstrap skill and merges .devops.yaml config
 
 set -euo pipefail
@@ -40,7 +40,7 @@ escape_for_json() {
 
 using_devops_escaped=$(escape_for_json "$using_devops_content")
 config_escaped=$(escape_for_json "$config_block")
-session_context="<IMPORTANT>\nYou have the claude-devops-plugin installed.\n\n**Below is the bootstrap skill. For all other skills, use the 'Skill' tool:**\n\n${using_devops_escaped}\n\n${config_escaped}\n</IMPORTANT>"
+session_context="<IMPORTANT>\nYou have the harumi-devops-plugin installed.\n\n**Below is the bootstrap skill. For all other skills, use the 'Skill' tool:**\n\n${using_devops_escaped}\n\n${config_escaped}\n</IMPORTANT>"
 
 # --- Platform-specific output ---
 if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then

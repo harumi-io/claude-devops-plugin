@@ -1,8 +1,8 @@
-# Claude DevOps Plugin — Design Spec
+# Harumi DevOps Plugin — Design Spec
 
 **Date:** 2026-03-31
 **Status:** Approved
-**Repository:** `harumi-io/claude-devops-plugin` (new standalone repo)
+**Repository:** `harumi-io/harumi-devops-plugin` (new standalone repo)
 
 ## Overview
 
@@ -26,7 +26,7 @@ A Claude Code plugin that provides DevOps-oriented skills for infrastructure, Ku
 ## Section 1: Repository Layout
 
 ```
-claude-devops-plugin/
+harumi-devops-plugin/
 ├── .claude-plugin/
 │   ├── plugin.json              # Claude Code manifest
 │   └── marketplace.json         # Plugin marketplace metadata
@@ -239,6 +239,6 @@ Each follows the same `SKILL.md` + `references/` pattern:
 1. Repository scaffold with all platform manifests
 2. Session-start hook with config loading
 3. `using-devops` bootstrap skill
-4. `infrastructure` skill (ported and generalized)
+4. `devops` skill (ported and generalized)
 5. Default `.devops.yaml` config (Harumi defaults)
 6. README with installation instructions for all 3 platforms

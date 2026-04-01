@@ -5,7 +5,7 @@
 
 ## Overview
 
-A new skill for the `claude-devops-plugin` that generates a `.devops.yaml` configuration file by analyzing the current repository's codebase. It auto-detects the tech stack from existing files, asks targeted questions only for fields it cannot determine, shows a preview, and writes the file only after explicit user confirmation.
+A new skill for the `harumi-devops-plugin` that generates a `.devops.yaml` configuration file by analyzing the current repository's codebase. It auto-detects the tech stack from existing files, asks targeted questions only for fields it cannot determine, shows a preview, and writes the file only after explicit user confirmation.
 
 ## Goals
 
@@ -30,7 +30,7 @@ No `references/` subdirectory — the skill is self-contained.
 
 **Registration:** `skills/using-devops/SKILL.md` is updated to add this skill to the available skills table with trigger:
 
-> Invoke `claude-devops-plugin:setup-devops-config` when: the user asks to create, generate, or set up `.devops.yaml`, or when no `.devops.yaml` exists and the user is setting up the plugin for the first time.
+> Invoke `harumi-devops-plugin:setup-devops-config` when: the user asks to create, generate, or set up `.devops.yaml`, or when no `.devops.yaml` exists and the user is setting up the plugin for the first time.
 
 ---
 
@@ -92,4 +92,4 @@ Add to the Available Skills table in `skills/using-devops/SKILL.md`:
 
 | Skill | Trigger | Use When |
 |-------|---------|----------|
-| `claude-devops-plugin:setup-devops-config` | User asks to create/generate `.devops.yaml`; no config exists | Setting up the plugin for a new repo |
+| `harumi-devops-plugin:setup-devops-config` | User asks to create/generate `.devops.yaml`; no config exists | Setting up the plugin for a new repo |

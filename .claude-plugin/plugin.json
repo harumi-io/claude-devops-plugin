@@ -1,13 +1,13 @@
 {
-  "name": "claude-devops-plugin",
+  "name": "harumi-devops-plugin",
   "description": "DevOps skills for infrastructure, Kubernetes, CI/CD, and cloud operations",
   "version": "0.2.0",
   "author": {
     "name": "Harumi.io",
     "email": "devops@harumi.io"
   },
-  "homepage": "https://github.com/harumi-io/claude-devops-plugin",
-  "repository": "https://github.com/harumi-io/claude-devops-plugin",
+  "homepage": "https://github.com/harumi-io/harumi-devops-plugin",
+  "repository": "https://github.com/harumi-io/harumi-devops-plugin",
   "license": "MIT",
   "keywords": [
     "devops",
