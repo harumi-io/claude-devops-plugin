@@ -13,12 +13,23 @@ terraform:
 
 kubernetes:
   tool: kubectl                    # kubectl | oc (openshift)
-  gitops: argocd                   # argocd | flux | none
+  gitops: argocd                   # argocd | none
+  gitops_repo: ""                  # repo where K8s manifests live (e.g., harumi-k8s)
+  app_of_apps: {}                  # root app paths per environment (e.g., prod: eks/bootstrap/eks-app.yaml)
   clusters:
     - name: eks-dev
       context: eks-dev
+      environment: development
+      domain: ""                   # e.g., dev.harumi.io
+      registry: ""                 # e.g., 123456789.dkr.ecr.us-east-2.amazonaws.com
     - name: eks-prod
       context: eks-prod
+      environment: production
+      domain: ""                   # e.g., harumi.io
+      registry: ""                 # e.g., 123456789.dkr.ecr.us-east-2.amazonaws.com
+  namespaces: []                   # populated by setup-devops-config scanning cluster
+  helm:
+    default_chart_repo: ""         # e.g., https://charts.helm.sh/stable
 
 cicd:
   platform: github-actions         # github-actions | gitlab-ci | circleci

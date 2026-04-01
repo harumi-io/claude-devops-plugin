@@ -28,6 +28,13 @@ Use Glob and Grep tools to detect each field. Record confident values and a list
 | `kubernetes.tool` | Default `kubectl`; Grep CI/CD configs for `oc ` (OpenShift) | `kubectl` |
 | `kubernetes.gitops` | Glob `**/Application.yaml` with `kind: Application` (ArgoCD); `**/HelmRelease.yaml` (Flux) | `none` |
 | `kubernetes.clusters` | Grep K8s manifests, CI/CD configs for cluster names or `--context` flags | ask if k8s detected, else omit |
+| `kubernetes.gitops_repo` | Grep ArgoCD Application manifests for `repoURL` pointing to a K8s repo | ask |
+| `kubernetes.app_of_apps` | Glob `**/bootstrap/*-app.yaml` with `kind: Application` | ask if argocd detected |
+| `kubernetes.clusters[].environment` | Infer from directory names (`eks-dev` → development, `eks` → production) | ask |
+| `kubernetes.clusters[].domain` | Grep Ingress manifests, ArgoCD apps for domain patterns | ask |
+| `kubernetes.clusters[].registry` | Grep CI/CD workflows, Dockerfiles for ECR/GCR/GHCR URLs | ask |
+| `kubernetes.namespaces` | **Requires cluster access** — `kubectl get namespaces` | require access |
+| `kubernetes.helm.default_chart_repo` | Grep ArgoCD Application manifests for `repoURL` with `https://` chart repos | ask |
 | `cicd.platform` | Glob `.github/workflows/*.yml` → `github-actions`; `.gitlab-ci.yml` → `gitlab-ci`; `.circleci/config.yml` → `circleci` | ask |
 | `observability.metrics` | Glob/Grep for `prometheus.yml`, `prometheus` in compose/K8s; `datadog` agent configs | `prometheus` |
 | `observability.dashboards` | Glob for `grafana/` directory or `grafana` in compose/K8s | `grafana` |
@@ -44,6 +51,30 @@ Use Glob and Grep tools to detect each field. Record confident values and a list
 **Omit the `kubernetes` section entirely** if no K8s manifests, Helm charts, or K8s-related CI/CD steps are found.
 
 **Omit the `observability` section** if no monitoring-related files or configs are found at all (no prometheus, grafana, loki, tempo, datadog, cloudwatch, jaeger, xray references anywhere in the repo) — note the omission in the preview. If any monitoring tool is detected, include the full section even if only some fields are populated.
+
+### Step 1b: Verify cluster access for Kubernetes
+
+If Kubernetes manifests, Helm charts, or ArgoCD Applications were detected in Step 1, cluster access is **required** to generate accurate config.
+
+Run these read-only commands to verify access:
+
+```bash
+kubectl config get-contexts
+kubectl get namespaces
+```
+
+**If kubectl is not available or contexts are not configured:**
+- Tell the user: "I detected Kubernetes resources in this repo but cannot access any cluster. Cluster access is required to generate accurate kubernetes config — I need to inspect namespaces, ArgoCD apps, and Helm releases to populate the config correctly. Please configure kubectl access and run this skill again."
+- **Do not proceed** with kubernetes config generation. Generate all other sections normally, but omit the kubernetes section entirely.
+- Do NOT fall back to guessing or generating partial kubernetes config.
+
+**If kubectl is available**, also run:
+```bash
+argocd app list --output name 2>/dev/null || echo "argocd CLI not available"
+helm list --all-namespaces 2>/dev/null || echo "helm CLI not available"
+```
+
+Use the results to populate `namespaces`, cross-reference ArgoCD apps with repo manifests, and detect Helm releases.
 
 ### Step 2: Ask about unknowns
 
@@ -128,4 +159,4 @@ Then ask:
 - Do not ask all unknown fields at once — one question at a time
 - Do not include source file comments in the written file — preview only
 - Do not invent values; if genuinely unknown and no default exists, ask
-- Do not run CLI commands (terraform, aws, kubectl, gcloud, az, etc.) during detection — use only Glob, Grep, and Read tools
+- Do not run CLI commands during detection — EXCEPT for kubernetes scanning in Step 1b, where `kubectl`, `argocd`, and `helm` read-only commands are required
