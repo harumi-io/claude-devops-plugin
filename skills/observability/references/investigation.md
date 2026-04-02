@@ -22,7 +22,7 @@ For every infrastructure resource (CPU, memory, disk, network):
 |--------|--------------|--------|
 | **U**tilization | How busy is the resource? | `(1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) * 100` |
 | **S**aturation | Is work queuing? | `node_load15 / count without (cpu, mode) (node_cpu_seconds_total{mode="idle"})` |
-| **E**rrors | Are there errors? | `rate(node_disk_read_errors_total[5m]) + rate(node_disk_write_errors_total[5m])` |
+| **E**rrors | Are there errors? | `dmesg | grep -i "error\|fail"` (disk errors are kernel-level, not Prometheus metrics) |
 
 ### USE Checklist
 
@@ -40,7 +40,7 @@ Memory:
 Disk:
   U: 1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)
   S: rate(node_disk_io_time_weighted_seconds_total[5m])
-  E: rate(node_disk_read_errors_total[5m]) + rate(node_disk_write_errors_total[5m])
+  E: dmesg | grep -i "error\|fail"  # Disk errors are kernel-level, check node logs
 
 Network:
   U: rate(node_network_receive_bytes_total[5m]) vs bandwidth
@@ -120,7 +120,7 @@ Query Tempo for slow or errored traces:
 
 ```bash
 # Search for error traces
-curl -s 'http://tempo:3200/api/search?q=\{resource.service.name="api" && status=error\}&limit=10'
+curl -g -s 'http://tempo:3200/api/search?q={resource.service.name="api"&&status=error}&limit=10'
 
 # Get specific trace by ID
 curl -s "http://tempo:3200/api/traces/<traceID>"
