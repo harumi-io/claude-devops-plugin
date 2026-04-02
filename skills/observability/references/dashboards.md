@@ -46,6 +46,7 @@ Grafana JSON structure, panel types, grid layout, and thresholds. Read this when
 ```json
 {
   "type": "stat",
+  "id": 1,
   "title": "Node Ready Status",
   "datasource": { "type": "prometheus", "uid": "prometheus" },
   "fieldConfig": {
@@ -90,6 +91,7 @@ Options: `colorMode` (value/background/none), `graphMode` (none/area), `textMode
 ```json
 {
   "type": "timeseries",
+  "id": 2,
   "title": "Request Rate",
   "datasource": { "type": "prometheus", "uid": "prometheus" },
   "fieldConfig": {
@@ -132,6 +134,7 @@ Options: `drawStyle` (line/bars/points), `lineInterpolation` (linear/smooth/step
 ```json
 {
   "type": "gauge",
+  "id": 3,
   "title": "Memory Usage",
   "datasource": { "type": "prometheus", "uid": "prometheus" },
   "fieldConfig": {
@@ -171,6 +174,7 @@ Options: `drawStyle` (line/bars/points), `lineInterpolation` (linear/smooth/step
 ```json
 {
   "type": "table",
+  "id": 4,
   "title": "Pod Status by Namespace",
   "datasource": { "type": "prometheus", "uid": "prometheus" },
   "fieldConfig": {
@@ -205,6 +209,7 @@ Use `"format": "table"` and `"instant": true` for table queries. Add `transforma
 ```json
 {
   "type": "piechart",
+  "id": 5,
   "title": "Node Count by Type",
   "datasource": { "type": "prometheus", "uid": "prometheus" },
   "fieldConfig": {
@@ -279,7 +284,7 @@ Add dynamic filtering to dashboards:
       "name": "namespace",
       "type": "query",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "query": "label_values(kube_pod_info, namespace)",
+      "query": { "query": "label_values(kube_pod_info, namespace)", "refId": "StandardVariableQuery" },
       "refresh": 2,
       "includeAll": true,
       "multi": true,
@@ -289,7 +294,7 @@ Add dynamic filtering to dashboards:
       "name": "service",
       "type": "query",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "query": "label_values(kube_pod_info{namespace=~\"$namespace\"}, pod)",
+      "query": { "query": "label_values(kube_pod_info{namespace=~\"$namespace\"}, pod)", "refId": "StandardVariableQuery" },
       "refresh": 2,
       "includeAll": true,
       "multi": true
