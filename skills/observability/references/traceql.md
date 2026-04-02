@@ -78,6 +78,8 @@ TraceQL queries select spans. A trace is returned if any of its spans match.
 | `!>>` | Not descendant |
 | `!~` | Not sibling |
 
+> **Note:** `>` as a numeric comparison operator applies *within* a span filter (`{ duration > 1s }`). As a structural operator, `>` means "direct child" and applies *between* span filter groups (`{ service.name = "api" } > { db.system = "postgresql" }`).
+
 ## Aggregate Functions
 
 ```traceql
@@ -90,8 +92,10 @@ TraceQL queries select spans. A trace is returned if any of its spans match.
 # Max duration
 { resource.service.name = "api" } | max(duration) > 2s
 
-# Min/sum
-{ resource.service.name = "api" } | min(duration), max(duration)
+# Min duration
+{ resource.service.name = "api" } | min(duration)
+# Max duration
+{ resource.service.name = "api" } | max(duration)
 ```
 
 ## Common Patterns
@@ -130,8 +134,8 @@ curl -s "http://tempo:3200/api/traces/<traceID>"
 # Search tags
 curl -s "http://tempo:3200/api/search/tags"
 
-# Search tag values
-curl -s "http://tempo:3200/api/search/tag/service.name/values"
+# Search tag values (Tempo v2)
+curl -s "http://tempo:3200/api/v2/search/tag/service.name/values"
 ```
 
 ## Best Practices
