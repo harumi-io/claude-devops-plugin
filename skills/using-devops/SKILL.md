@@ -15,6 +15,8 @@ Use the Skill tool to invoke these when triggered:
 |-------|---------|----------|
 | `harumi-devops-plugin:infrastructure` | `.tf` files, Terraform, AWS/GCP/Azure infra | Creating, modifying, or reviewing Terraform/IaC configurations |
 | `harumi-devops-plugin:setup-devops-config` | User asks to create/set up `.devops.yaml`; no config exists | Setting up the plugin for a new repo |
+| `harumi-devops-plugin:kubernetes` | K8s manifests, Helm, kubectl, pod issues, RBAC | Working with Kubernetes resources, debugging, manifest authoring |
+| `harumi-devops-plugin:argocd` | ArgoCD Applications, sync issues, GitOps deployment | Managing ArgoCD apps, app-of-apps, onboarding services |
 
 ## Operations Commands
 
@@ -29,9 +31,13 @@ Quick-action skills for daily DevOps operations. Use the Skill tool to invoke:
 | `harumi-devops-plugin:list-vpn-users` | List active VPN certificates |
 | `harumi-devops-plugin:create-service-account` | Create a new IAM service account |
 | `harumi-devops-plugin:rotate-access-keys` | Rotate IAM access keys for a user/service account |
+| `harumi-devops-plugin:deploy-app` | Onboard a new app or service to ArgoCD |
+| `harumi-devops-plugin:create-namespace` | Create a namespace with RBAC, quotas, network policies |
+| `harumi-devops-plugin:rollback-deployment` | Roll back a deployment to a previous revision |
+| `harumi-devops-plugin:debug-pod` | Troubleshoot a failing or misbehaving pod |
+| `harumi-devops-plugin:scale-deployment` | Scale deployment replicas up or down |
 
 **Future skills** (not yet available):
-- `kubernetes` — K8s manifests, Helm charts, ArgoCD/Flux
 - `cicd` — CI/CD pipeline configs, deployment workflows
 - `cost-optimization` — Resource sizing, cost analysis
 - `observability` — Monitoring, alerting, dashboards
@@ -72,12 +78,41 @@ Invoke `harumi-devops-plugin:create-service-account` when:
 Invoke `harumi-devops-plugin:rotate-access-keys` when:
 - User wants to rotate, renew, or replace IAM access keys
 
+Invoke `harumi-devops-plugin:kubernetes` when you encounter ANY of:
+- K8s manifests (`.yaml` files with `apiVersion` and `kind`)
+- Helm charts, Helm values files, or Helm operations
+- kubectl operations or discussions
+- Pod failures, debugging, or troubleshooting
+- RBAC, NetworkPolicy, or pod security configuration
+- Resource limits, scaling, or HPA discussions
+
+Invoke `harumi-devops-plugin:argocd` when you encounter ANY of:
+- ArgoCD Application manifests or discussions
+- Sync/drift issues or ArgoCD troubleshooting
+- App-of-apps patterns or GitOps deployment
+- Onboarding services to ArgoCD management
+
+Invoke `harumi-devops-plugin:deploy-app` when:
+- User wants to deploy, onboard, or add an app to ArgoCD
+
+Invoke `harumi-devops-plugin:create-namespace` when:
+- User wants to create a new Kubernetes namespace
+
+Invoke `harumi-devops-plugin:rollback-deployment` when:
+- User wants to rollback, revert, or undo a deployment
+
+Invoke `harumi-devops-plugin:debug-pod` when:
+- User wants to debug, troubleshoot, or investigate a pod issue
+
+Invoke `harumi-devops-plugin:scale-deployment` when:
+- User wants to scale up, scale down, or change replica count of a deployment
+
 ## Universal Safety Rules (NON-NEGOTIABLE)
 
 These apply to ALL DevOps skills:
 
 1. **Never run `terraform apply` or `terraform destroy`** — Always provide a handoff with the exact command for the user to execute
-2. **Never `kubectl delete` in production without explicit user confirmation**
+2. **Never `kubectl delete` or any write operation without explicit user confirmation** — this applies to ALL environments (production, staging, development). No exceptions.
 3. **Never push images to production registries without confirmation**
 4. **Always verify current state before making changes** — Use CLI commands (aws, gcloud, az, kubectl) to confirm resource existence and configuration
 5. **Always present the handoff pattern for destructive actions:**
