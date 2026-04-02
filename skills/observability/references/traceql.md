@@ -94,8 +94,6 @@ TraceQL queries select spans. A trace is returned if any of its spans match.
 
 # Min duration
 { resource.service.name = "api" } | min(duration)
-# Max duration
-{ resource.service.name = "api" } | max(duration)
 ```
 
 ## Common Patterns

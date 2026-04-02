@@ -96,7 +96,7 @@ groups:
     severity: warning
   annotations:
     summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} crash looping"
-    description: "Restart rate: {{ $value | printf \"%.2f\" }}/sec"
+    description: "{{ $value | printf \"%.0f\" }} restarts in the last hour"
 ```
 
 ## RED Method Templates (Services)
