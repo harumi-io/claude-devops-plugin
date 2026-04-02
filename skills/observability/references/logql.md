@@ -87,7 +87,7 @@ After parsing, filter on extracted labels:
 
 ```logql
 {job="api"} | json | line_format "{{.method}} {{.path}} {{.status}} {{.duration}}"
-{job="api"} | json | label_format duration_seconds="{{divide .duration 1000}}"
+{job="api"} | json | label_format level=severity, path=url
 ```
 
 ## Metric Queries
