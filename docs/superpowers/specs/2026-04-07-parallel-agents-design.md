@@ -1,191 +1,146 @@
 # Parallel Agent Architecture — Design Spec
 
 **Date:** 2026-04-07  
-**Status:** Draft
+**Status:** Draft (Revised)
 
 ## Problem
 
-All skills in `harumi-devops-plugin` execute sequentially within a single context window. Operations that are logically independent — inspecting pod state while checking cluster health, or running `infrastructure` and `kubernetes` skills for a combined task — are bottlenecked into one thread. This wastes wall-clock time and pollutes each skill's context with unrelated prior work.
+All skills in `harumi-devops-plugin` execute sequentially within a single context window. Operations that are logically independent — running `infrastructure` and `kubernetes` skills for a combined task, or investigating an incident with both `kubernetes` and `observability` — are bottlenecked into one thread. This wastes wall-clock time and pollutes each skill's context with unrelated prior work.
 
 ## Goal
 
-Enable two levels of parallelism:
+Enable cross-skill parallelism: multiple skills run simultaneously in independent fresh context windows when a request spans compatible domains.
 
-- **Level 1 (within a skill):** Investigation steps dispatched as parallel sub-agents via `AGENT.md` files in the `agents/` directory
-- **Level 2 (across skills):** `using-devops` coordinates multiple skills running simultaneously when a request spans compatible domains
-
-Both levels share a common principle: investigation in parallel, writes sequential.
+**Constraint:** Existing skills are not modified. Agents are thin wrappers that invoke skills — all skill logic stays where it is.
 
 ## Non-Goals
 
+- Modifying existing skill `SKILL.md` files
+- Within-skill step parallelism (internal steps remain sequential) — deferred
 - Autonomous retry or self-healing — all error recovery is user-gated
 - Nested agent dispatch (agents calling agents)
 - Real-time streaming between agents
 
 ---
 
-## Level 1: Agent Files
+## Agent Files
 
 ### Directory Structure
 
 ```
 agents/
-  <agent-name>/
+  <skill-name>/
     AGENT.md
 ```
 
-Each `AGENT.md` is a self-contained mini-playbook. The `agents/` directory already exists in the repo root; this design activates it.
+Each `AGENT.md` is a thin wrapper that:
+1. Accepts inputs describing the specific task
+2. Invokes the corresponding skill via the `skill` tool
+3. Returns results to the caller
+
+The `agents/` directory already exists in the repo root; this design activates it.
 
 ### `AGENT.md` Format
 
 ```markdown
 ---
-name: check-pod-state
-description: "Fetch logs, events, and restart count for a pod"
+name: run-kubernetes
+description: "Run the kubernetes skill in a fresh context for a specific task"
+skill: harumi-devops-plugin:kubernetes
 inputs:
-  - pod: string          # pod name
-  - namespace: string    # k8s namespace
-  - context: string      # kubectl context
-phase: read              # read | write  (advisory; calling skill controls actual sequencing)
+  - task: string      # what to investigate or apply
+  - context: string   # kubectl context
+  - namespace: string # target namespace (optional)
 ---
 
-# Check Pod State
+# Run Kubernetes Agent
+
+You are running the kubernetes skill to complete a specific task in a fresh, isolated context.
+
+## Your Task
+
+{task}
 
 ## Steps
 
-1. ...
-2. ...
+1. Invoke the `skill: harumi-devops-plugin:kubernetes` tool
+2. Follow the skill to complete: {task}
+3. Report findings or results clearly
 
 ## Output Format
 
-Report findings as:
-- **Key:** [value]
+Summarize your results as:
+- **Status:** [what was found / applied]
+- **Details:** [relevant facts]
+- **Actions taken:** [if any writes were performed]
 ```
 
 **Rules:**
-- Input placeholders use `{input-name}` syntax — resolved by the calling skill before dispatch
-- `phase` is advisory metadata only; the calling skill decides when to dispatch
-- Output format is structured prose; no JSON required
-- Fully self-contained — no references to other agents or skills
+- Input placeholders use `{input-name}` syntax — resolved by the calling orchestrator before dispatch
+- Each agent maps 1:1 to a skill
+- Agents are stateless — no shared state with other agents
+- Output is structured prose for the orchestrator to collect
 
-### Agent Inventory (Initial)
+### Agent Inventory
 
-Agents to create for the first wave of skill migrations:
+One agent per parallelizable skill:
 
-| Agent | Phase | Used By |
-|-------|-------|---------|
-| `check-pod-state` | read | `debug-pod` |
-| `check-pod-logs` | read | `debug-pod` |
-| `check-cluster-health` | read | `debug-pod`, `scale-deployment`, `deploy-app` |
-| `check-namespace` | read | `deploy-app`, `create-namespace` |
-| `check-ecr-repo` | read | `deploy-app` |
-| `check-argocd-app` | read | `deploy-app`, `rollback-deployment` |
-| `check-hpa` | read | `scale-deployment` |
-| `check-terraform-state` | read | `infrastructure` |
-| `apply-namespace` | write | `create-namespace` |
-| `apply-argocd-app` | write | `deploy-app` |
+| Agent | Skill | Typical use |
+|-------|-------|-------------|
+| `run-kubernetes` | `harumi-devops-plugin:kubernetes` | K8s investigation, manifest work |
+| `run-infrastructure` | `harumi-devops-plugin:infrastructure` | Terraform state, IaC changes |
+| `run-observability` | `harumi-devops-plugin:observability` | Metrics, logs, incident investigation |
+| `run-argocd` | `harumi-devops-plugin:argocd` | Sync status, GitOps operations |
+| `run-debug-pod` | `harumi-devops-plugin:debug-pod` | Pod troubleshooting |
+| `run-deploy-app` | `harumi-devops-plugin:deploy-app` | App onboarding |
 
 ---
 
-## Level 1: Skill Integration Pattern
+## Cross-Skill Orchestration
 
-Skills are restructured into two explicit phases.
-
-### Phase 1 — Parallel Investigation
-
-```markdown
-## Phase 1: Parallel Investigation
-
-Dispatch simultaneously using the task tool:
-- `agents/check-pod-state` — inputs: pod={pod}, namespace={namespace}, context={context}
-- `agents/check-cluster-health` — inputs: context={context}
-- `agents/check-namespace` — inputs: namespace={namespace}, context={context}
-
-Collect all outputs before proceeding to Phase 2.
-```
-
-All listed agents are dispatched at once. The main agent waits for all results before continuing.
-
-### Phase 2 — Sequential Writes
-
-```markdown
-## Phase 2: Apply (Sequential)
-
-Based on Phase 1 results:
-1. If namespace missing: dispatch `agents/apply-namespace` (user confirmation required)
-2. If ArgoCD app missing: dispatch `agents/apply-argocd-app` (user confirmation required)
-```
-
-Write agents are dispatched one at a time, in dependency order. Each write gate requires explicit user confirmation consistent with existing safety rules.
-
-### Skills to Migrate
-
-**High value (migrate now):**
-- `debug-pod` — 3+ sequential inspection steps, all read-only
-- `deploy-app` — cluster state + ECR + ArgoCD checks before writes
-- `scale-deployment` — HPA check + node capacity check before scaling
-- `rollback-deployment` — history fetch + current state check before rollback
-- `kubernetes` — multi-step investigation patterns
-- `infrastructure` — Terraform state + resource existence checks before plan/apply
-
-**Low value (skip for now):**
-- `create-iam-user`, `remove-iam-user`, `rotate-access-keys` — single CLI call + plan
-- `list-vpn-users`, `create-vpn-creds`, `revoke-vpn-creds` — single script execution
-- `create-namespace` — minimal investigation; apply phase uses agent architecture but no parallel investigation needed
-
----
-
-## Level 2: Cross-Skill Orchestration
-
-`using-devops` gains a **Parallelism Rules** section that declares which skills are safe to dispatch simultaneously and which must be sequenced.
+`using-devops` gains a **Parallelism Rules** section that declares which agents are safe to dispatch simultaneously and which must be sequenced.
 
 ### Compatibility Matrix
 
-| Skills | Can run together | Notes |
-|--------|-----------------|-------|
-| `infrastructure` + `kubernetes` | ✅ | Reads parallel; writes sequential |
-| `kubernetes` + `observability` | ✅ | Common in incident investigation |
-| `infrastructure` + `observability` | ✅ | No shared write targets |
-| `argocd` + `kubernetes` | ✅ | Investigation compatible |
-| `deploy-app` + `create-namespace` | ⚠️ | Sequence: namespace first |
-| Any two skills writing to the same resource | ❌ | Always sequential |
+| Agents (skills) | Can run together | Notes |
+|-----------------|-----------------|-------|
+| `run-infrastructure` + `run-kubernetes` | ✅ | Independent targets |
+| `run-kubernetes` + `run-observability` | ✅ | Common in incident investigation |
+| `run-infrastructure` + `run-observability` | ✅ | No shared write targets |
+| `run-argocd` + `run-kubernetes` | ✅ | Investigation compatible |
+| `run-deploy-app` + `run-debug-pod` (same app) | ⚠️ | Sequence: debug first |
+| Any two agents writing to the same resource | ❌ | Always sequential |
 
 ### Dispatch Rule (in `using-devops`)
 
 When the main agent determines a user request maps to 2+ compatible skills:
 
-1. Dispatch all compatible skills as parallel sub-agents using the `task` tool
-2. Each skill runs its full investigation phase independently (fresh context)
-3. Collect all results before starting any write phase
-4. Execute write phases sequentially, respecting any declared dependencies
+1. Identify the relevant agents from the inventory above
+2. Dispatch all compatible agents simultaneously using the `task` tool, passing the specific task and context as inputs
+3. Each agent invokes its skill in a fresh, isolated context window
+4. Collect all results before executing any write operations
+5. Execute writes sequentially, respecting any declared dependencies
 
 ---
 
 ## Error Handling
 
-### Phase 1 Agent Failures
+### Parallel Agent Failures
 
-If an investigation agent fails or returns incomplete data:
-1. Report what partial data was collected from the other agents
+If one of the parallel agents fails or returns incomplete data:
+1. Preserve and display the successful agents' results
 2. Explicitly name the failed agent and its error
-3. Ask the user whether to proceed with incomplete information or abort
-4. Never silently proceed into Phase 2 writes
+3. Ask the user whether to proceed with partial results or abort
+4. Never silently proceed into write operations with incomplete information
 
-### Phase 2 Agent Failures
+### Write Failures
 
-Write agents fail loudly. On failure:
+If a skill encounters an error during its write phase:
 1. Surface the full error
 2. Stop the write sequence
 3. Present a manual recovery handoff command for the user to execute
 
 This follows the existing "never silently apply" safety rule.
-
-### Level 2 Cross-Skill Failures
-
-If one of multiple parallel skills fails during investigation:
-1. Preserve and display the successful skills' results
-2. Report the failed skill and its error
-3. User decides whether to proceed with partial results or retry
 
 **No silent retries.** All error recovery is user-gated.
 
@@ -195,21 +150,22 @@ If one of multiple parallel skills fails during investigation:
 
 | Action | Path | Purpose |
 |--------|------|---------|
-| Create | `agents/<agent-name>/AGENT.md` | Per-agent per the inventory above |
-| Modify | `skills/debug-pod/SKILL.md` | Add Phase 1/2 structure |
-| Modify | `skills/deploy-app/SKILL.md` | Add Phase 1/2 structure |
-| Modify | `skills/scale-deployment/SKILL.md` | Add Phase 1/2 structure |
-| Modify | `skills/rollback-deployment/SKILL.md` | Add Phase 1/2 structure |
-| Modify | `skills/kubernetes/SKILL.md` | Add Phase 1/2 structure |
-| Modify | `skills/infrastructure/SKILL.md` | Add Phase 1/2 structure |
+| Create | `agents/run-kubernetes/AGENT.md` | Thin wrapper invoking kubernetes skill |
+| Create | `agents/run-infrastructure/AGENT.md` | Thin wrapper invoking infrastructure skill |
+| Create | `agents/run-observability/AGENT.md` | Thin wrapper invoking observability skill |
+| Create | `agents/run-argocd/AGENT.md` | Thin wrapper invoking argocd skill |
+| Create | `agents/run-debug-pod/AGENT.md` | Thin wrapper invoking debug-pod skill |
+| Create | `agents/run-deploy-app/AGENT.md` | Thin wrapper invoking deploy-app skill |
 | Modify | `skills/using-devops/SKILL.md` | Add Parallelism Rules section |
+
+No existing skills are modified.
 
 ---
 
 ## Design Principles
 
-1. **Agents are dumb building blocks** — they execute one task, return structured output, know nothing about orchestration
-2. **Skills are the orchestrators** — they decide what to dispatch, in what order, and what to do with results
-3. **using-devops is the meta-orchestrator** — it sees across skills and enables Level 2 parallelism
-4. **Fresh context by construction** — each dispatched agent/skill starts with no conversation history; context is passed explicitly via inputs
+1. **Agents are thin wrappers** — they pass context to a skill and return results; no business logic
+2. **Skills are unchanged** — all domain knowledge stays in `SKILL.md` files
+3. **using-devops is the orchestrator** — it sees across agents and decides what to dispatch in parallel
+4. **Fresh context by construction** — each dispatched agent starts with no conversation history; context is passed explicitly via inputs
 5. **Safety is never relaxed** — parallelism doesn't bypass confirmation gates or user-gated writes
