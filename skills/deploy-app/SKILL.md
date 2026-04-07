@@ -29,7 +29,7 @@ Read `.devops.yaml` for:
 - `kubernetes.clusters[]` — target cluster context, domain, registry, region
 - `naming` — resource naming pattern
 
-Resolve all placeholders from `references/ci-writeback-pattern.md` using these values plus user input.
+Resolve all placeholders from `references/ci-writeback-pattern.md` using these values plus user input. If App repo was provided as `org/repo` format (e.g., `harumi-io/frontend`), split it: `<org>` = `harumi-io`, `<app-repo>` = `frontend`.
 
 ### Step 2: Inspect cluster state
 
