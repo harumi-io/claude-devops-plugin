@@ -227,7 +227,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/harumi-io/<app-repo>.git
+    repoURL: https://github.com/<org>/<app-repo>.git
     targetRevision: dev
     path: deploy-dev
   destination:
@@ -263,7 +263,7 @@ on:
 
 permissions:
   id-token: write
-  contents: write
+  contents: write  # required for git push write-back
 
 env:
   AWS_REGION: <aws-region>
@@ -312,7 +312,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add deploy-dev/deployment.yaml
           git diff --cached --quiet && echo "No changes to commit" && exit 0
+          # [skip ci] prevents this write-back commit from re-triggering the workflow
           git commit -m "chore(deploy-dev): update image tag to ${GITHUB_SHA::8} [skip ci]"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
           git push
 ```
 
