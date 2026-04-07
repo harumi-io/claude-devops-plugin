@@ -36,6 +36,9 @@ In-repo GitOps pattern: manifests live in `deploy-dev/` inside the app repo. The
 | `<app-port>` | `3000` | User input |
 | `<health-path>` | `/api/health` | User input |
 | `<certificate-arn>` | `arn:aws:acm:...` | `.devops.yaml` or ACM console |
+| `<app-repo>` | `frontend` | User input — GitHub repository name (e.g., `harumi-io/frontend`, repo part only) |
+| `<org>` | `harumi-io` | User input — GitHub organization name |
+| `<context>` | `eks-dev` | `.devops.yaml` `kubernetes.clusters[].context` |
 
 ## Manifest Templates
 
@@ -319,14 +322,14 @@ jobs:
 
 The `dev` branch MUST have a branch protection bypass for `github-actions[bot]` so the CI write-back commit can be pushed to the protected branch.
 
-Run this script directly (not as a handoff). Replace `<org>` and `<app-repo-name>` with actual values:
+Run this script directly (not as a handoff). Replace `<org>` and `<app-repo>` with actual values:
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
 ORG="<org>"              # e.g., harumi-io
-REPO="<app-repo-name>"   # e.g., frontend
+REPO="<app-repo>"        # e.g., frontend
 BRANCH="dev"
 
 echo "Configuring github-actions[bot] bypass on ${ORG}/${REPO} (${BRANCH})..."
@@ -339,9 +342,13 @@ fi
 
 # Add github-actions[bot] to PR review bypass allowances (only if PR reviews are required)
 if gh api "repos/${ORG}/${REPO}/branches/${BRANCH}/protection/required_pull_request_reviews" &>/dev/null; then
-  # Fetch current bypass apps to preserve existing entries
+  # Fetch current bypass apps, users, and teams to preserve existing entries
   CURRENT_APPS=$(gh api "repos/${ORG}/${REPO}/branches/${BRANCH}/protection/required_pull_request_reviews" \
     --jq '[.bypass_pull_request_allowances.apps[].slug] + ["github-actions"] | unique')
+  CURRENT_USERS=$(gh api "repos/${ORG}/${REPO}/branches/${BRANCH}/protection/required_pull_request_reviews" \
+    --jq '[.bypass_pull_request_allowances.users[].login]')
+  CURRENT_TEAMS=$(gh api "repos/${ORG}/${REPO}/branches/${BRANCH}/protection/required_pull_request_reviews" \
+    --jq '[.bypass_pull_request_allowances.teams[].slug]')
 
   gh api --method PATCH \
     "repos/${ORG}/${REPO}/branches/${BRANCH}/protection/required_pull_request_reviews" \
@@ -349,8 +356,8 @@ if gh api "repos/${ORG}/${REPO}/branches/${BRANCH}/protection/required_pull_requ
 {
   "bypass_pull_request_allowances": {
     "apps": ${CURRENT_APPS},
-    "users": [],
-    "teams": []
+    "users": ${CURRENT_USERS},
+    "teams": ${CURRENT_TEAMS}
   }
 }
 EOF
@@ -359,10 +366,13 @@ fi
 
 # Add github-actions[bot] to push allowlist (only if push restrictions are enabled)
 if gh api "repos/${ORG}/${REPO}/branches/${BRANCH}/protection/restrictions" &>/dev/null; then
+  CURRENT_PUSH_APPS=$(gh api "repos/${ORG}/${REPO}/branches/${BRANCH}/protection/restrictions" \
+    --jq '[.apps[].slug] + ["github-actions"] | unique')
+
   gh api --method POST \
     "repos/${ORG}/${REPO}/branches/${BRANCH}/protection/restrictions/apps" \
-    --input - <<'EOF'
-["github-actions"]
+    --input - <<EOF
+${CURRENT_PUSH_APPS}
 EOF
   echo "✓ Push restrictions: github-actions[bot] added"
 fi
