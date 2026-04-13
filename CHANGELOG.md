@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.8.0
+
+### Breaking Changes
+
+- Removed `.devops.yaml` config system and `config/default.devops.yaml` — replaced by `harumi.yaml` per-repo manifest
+- Removed `setup-devops-config` skill — replaced by `sync-docs`
+- Removed generic multi-provider abstractions (GCP, Azure) from all skills — plugin is now AWS-only
+
+### Added
+
+- `sync-docs` skill — maintains generated docs (`docs/architecture/*`, `harumi.yaml`) automatically and proposes edits to human-authored docs (`README.md`, `CLAUDE.md`, `AGENTS.md`, `docs/runbooks/*`) with user approval
+- Drift detection on session start — compares `.harumi-last-sync` commit SHA with HEAD, classifies changed files, triggers sync-docs when drift is detected
+- Multi-repo awareness — bootstrap skill declares `harumi-io/infrastructure` and `harumi-io/harumi-k8s` as managed repos
+- Cluster read-access rules — explicit allowed/forbidden kubectl command lists in bootstrap skill
+- Observability endpoints in `harumi.yaml` — skills can query Prometheus, Grafana, Loki, Tempo, Alertmanager directly
+- `docs/architecture/` directory for generated architecture docs
+- `docs/runbooks/` directory for operational runbooks
+
+### Changed
+
+- Session-start hook reads `harumi.yaml` instead of `.devops.yaml`
+- Bootstrap skill (`using-devops`) updated with harumi-specific context
+- Infrastructure skill and references cleaned of GCP/Azure content
+- Observability skill updated to reference `harumi.yaml` endpoints
+
 ## 0.3.0
 
 - 7 new operations command skills for daily DevOps tasks:

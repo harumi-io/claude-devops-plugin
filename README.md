@@ -1,6 +1,6 @@
 # Harumi DevOps Plugin
 
-DevOps skills for [Claude Code](https://claude.ai/code), [Cursor](https://cursor.com), and GitHub Copilot. Provides infrastructure, Kubernetes, CI/CD, and cloud operations guidance through an extensible skill system.
+DevOps skills for [Claude Code](https://claude.ai/code) and [Cursor](https://cursor.com). Provides infrastructure, Kubernetes, ArgoCD, observability, and cloud operations guidance for harumi's AWS stack.
 
 ## Installation
 
@@ -13,7 +13,7 @@ Register the marketplace and install the plugin:
 /plugin install harumi-devops-plugin@harumi-devops-marketplace
 ```
 
-For local development, you can register directly from a cloned copy:
+For local development, register directly from a cloned copy:
 
 ```bash
 /plugin marketplace add /path/to/harumi-devops-plugin
@@ -28,62 +28,180 @@ Clone the repository and register the plugin in Cursor Agent chat:
 /add-plugin /path/to/harumi-devops-plugin
 ```
 
-### GitHub Copilot
-
-Clone the repository. The session-start hook auto-detects the Copilot environment.
-
 ## Configuration
 
-Create a `.devops.yaml` in your repository root to configure the plugin for your stack:
+Create a `harumi.yaml` in your repository root:
 
 ```yaml
-cloud:
-  provider: aws          # aws | gcp | azure
-  region: us-east-1
+# Identity
+project: harumi
+org: harumi-io
 
+# Repositories managed by this plugin
+repos:
+  infra: harumi-io/infrastructure
+  k8s: harumi-io/harumi-k8s
+
+# AWS
+aws:
+  account_id: "123456789012"
+  region: us-east-1
+  account_alias: harumi
+
+# Terraform
 terraform:
   version: "1.5.7"
   state_backend: s3
+  state_bucket: harumi-terraform
   var_file: prod.tfvars
+  modules:
+    main: /
+    core_infra: /core-infrastructure
+    iam: /iam
 
+# Kubernetes
+clusters:
+  - name: eks-prod
+    context: eks-prod
+    environment: production
+    domain: harumi.io
+    registry: 123456789012.dkr.ecr.us-east-1.amazonaws.com
+  - name: eks-dev
+    context: eks-dev
+    environment: development
+    domain: dev.harumi.io
+    registry: 123456789012.dkr.ecr.us-east-1.amazonaws.com
+
+# ArgoCD / GitOps
+argocd:
+  gitops_repo: harumi-io/harumi-k8s
+  app_of_apps:
+    prod: eks/bootstrap/eks-app.yaml
+    dev: eks-dev/bootstrap/eks-dev-app.yaml
+
+# CI/CD
+cicd:
+  platform: github-actions
+
+# Containers
+containers:
+  runtime: docker
+  registry: ecr
+
+# Observability — endpoints reachable via kubectl port-forward or ingress
+observability:
+  metrics: prometheus
+  logs: loki
+  traces: tempo
+  dashboards: grafana
+  endpoints:
+    prometheus: http://prometheus.monitoring.svc:9090
+    grafana: http://grafana.monitoring.svc:3000
+    loki: http://loki.monitoring.svc:3100
+    tempo: http://tempo.monitoring.svc:3200
+    alertmanager: http://alertmanager.monitoring.svc:9093
+
+# Naming
 naming:
   pattern: "{namespace}-{stage}-{name}"
-  namespace: mycompany
+  namespace: harumi
   stage: production
+
+# Docs management
+docs:
+  generated:
+    - docs/architecture/*
+    - harumi.yaml
+  human_authored:
+    - README.md
+    - CLAUDE.md
+    - AGENTS.md
+    - docs/runbooks/*
 ```
 
-See `config/default.devops.yaml` for all available options.
-
-If no `.devops.yaml` is found, the plugin uses its built-in defaults.
+If no `harumi.yaml` exists, the `sync-docs` skill can generate one from your codebase and cluster state.
 
 ## Skills
 
-### Available (MVP)
+### Domain Skills
 
 | Skill | Description |
 |-------|-------------|
-| `devops` | Terraform/IaC management with multi-provider support (AWS, GCP, Azure) |
+| `infrastructure` | Terraform/IaC management for AWS |
+| `kubernetes` | K8s manifest management, Helm, debugging, RBAC, NetworkPolicy, HPA |
+| `argocd` | ArgoCD application management, app-of-apps patterns, sync waves, GitOps |
+| `observability` | PromQL/LogQL/TraceQL authoring, Grafana dashboards, Prometheus alerts, incident investigation |
+| `deploy-app` | App onboarding for ArgoCD with CI write-back pattern (dev and prod environments) |
 
-### Planned
+### Operations Commands
 
 | Skill | Description |
 |-------|-------------|
-| `kubernetes` | K8s manifest management, Helm, ArgoCD/Flux |
-| `cicd` | CI/CD pipeline authoring and deployment patterns |
-| `cost-optimization` | Resource right-sizing and cost analysis |
-| `observability` | Monitoring, alerting, and dashboard management |
-| `security-operations` | IAM audit, secrets rotation, compliance |
-| `containers` | Dockerfile optimization, image management |
+| `create-iam-user` | Create IAM developer/admin/contributor users via Terraform |
+| `remove-iam-user` | Offboard IAM users — removes Terraform config and runs plan |
+| `create-service-account` | Create IAM service accounts with optional access keys and Secrets Manager |
+| `rotate-access-keys` | Rotate IAM access keys with zero-downtime (create new, then deactivate old) |
+| `create-vpn-creds` | Generate VPN client certificate and export `.ovpn` config |
+| `revoke-vpn-creds` | Revoke a VPN client certificate |
+| `list-vpn-users` | List all VPN certificates and their status |
+
+### Kubernetes Operations
+
+| Skill | Description |
+|-------|-------------|
+| `create-namespace` | Create K8s namespace with RBAC, quotas, NetworkPolicies, and optional ArgoCD registration |
+| `debug-pod` | Guided troubleshooting for failing pods with diagnostic decision trees |
+| `rollback-deployment` | Roll back a K8s deployment to a previous revision with safety checks |
+| `scale-deployment` | Scale deployment replicas with HPA conflict and node capacity checks |
+
+### Meta Skills
+
+| Skill | Description |
+|-------|-------------|
+| `using-devops` | Bootstrap skill injected at session start — announces available skills and trigger rules |
+| `sync-docs` | Keep repo docs in sync with actual infrastructure and cluster state |
+
+## Agents
+
+Agents are thin wrappers that run a skill in a fresh, isolated context. They enable cross-skill parallelism — multiple agents can run concurrently without competing for the same context window.
+
+| Agent | Skill | Key Inputs |
+|-------|-------|------------|
+| `run-infrastructure` | `infrastructure` | `task`, `module` |
+| `run-kubernetes` | `kubernetes` | `task`, `context`, `namespace` |
+| `run-argocd` | `argocd` | `task`, `app` |
+| `run-observability` | `observability` | `task`, `mode` (author/investigate) |
+| `run-debug-pod` | `debug-pod` | `task`, `context`, `namespace`, `pod` |
+| `run-deploy-app` | `deploy-app` | `task`, `environment` (dev/prod), `app-name` |
 
 ## How It Works
 
-1. **Session start** — The hook loads the bootstrap skill and merges your `.devops.yaml` config
-2. **Skill triggering** — The bootstrap skill tells Claude when to invoke domain-specific skills
-3. **Safety rules** — Destructive operations (apply, destroy, delete) always require user confirmation via handoff
+1. **Session start** — The hook loads the bootstrap skill (`using-devops`), reads `harumi.yaml`, and checks for drift
+2. **Drift detection** — Compares `.harumi-last-sync` with current HEAD. If new commits landed, triggers `sync-docs` to update documentation before other work
+3. **Skill triggering** — The bootstrap skill tells the AI when to invoke domain-specific skills based on task context
+4. **Safety rules** — Destructive operations (`apply`, `destroy`, `delete`) always require user confirmation via handoff
+5. **Parallel agents** — For multi-domain tasks, agents dispatch work to isolated contexts that run concurrently
 
-## Relationship to Superpowers
+## Managed Repositories
 
-This plugin is **domain-oriented** (DevOps knowledge). [Superpowers](https://github.com/obra/superpowers) is **process-oriented** (TDD, debugging, planning). They work together — use superpowers for workflow, devops-plugin for domain expertise.
+The plugin is aware of two repositories:
+
+| Repo | Purpose |
+|------|---------|
+| `harumi-io/infrastructure` | Terraform IaC (AWS) — VPC, ECS, EKS, RDS, IAM, DNS |
+| `harumi-io/harumi-k8s` | Kubernetes manifests, ArgoCD apps, Helm values, Grafana dashboards |
+
+Skills use locally configured kubectl contexts for **read-only** cluster access. All write operations require user confirmation via handoff.
+
+## Evals
+
+Each skill includes evaluation scenarios in `evals/evals.json`. Run benchmarks and aggregate results:
+
+```bash
+python scripts/aggregate_benchmark.py
+```
+
+Review individual eval runs visually with `eval-viewer/viewer.html`.
 
 ## License
 
