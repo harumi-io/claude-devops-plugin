@@ -23,39 +23,13 @@ aws eks describe-cluster --name [cluster-name]
 aws route53 list-resource-record-sets --hosted-zone-id [zone-id]
 ```
 
-### GCP
-
-```bash
-gcloud compute networks describe [name] --project [project]
-gcloud compute networks subnets list --network [name]
-gcloud container clusters describe [name] --region [region]
-gcloud sql instances describe [name]
-gcloud redis instances describe [name] --region [region]
-gcloud storage buckets describe gs://[bucket-name]
-gcloud iam service-accounts describe [email]
-gcloud dns record-sets list --zone [zone-name]
-```
-
-### Azure
-
-```bash
-az network vnet show --name [name] --resource-group [rg]
-az network vnet subnet list --vnet-name [name] --resource-group [rg]
-az aks show --name [name] --resource-group [rg]
-az sql server show --name [name] --resource-group [rg]
-az redis show --name [name] --resource-group [rg]
-az storage account show --name [name] --resource-group [rg]
-az ad sp show --id [id]
-az network dns record-set list --zone-name [zone] --resource-group [rg]
-```
-
 ## Phase 3: Clarify Ambiguities
 
 Common questions to ask the user:
 
 - **Resource location**: Which module or directory should this resource live in?
 - **Pattern**: Follow existing patterns or introduce a new convention?
-- **Naming**: What naming pattern does this project use? (Check `.devops.yaml` naming section)
+- **Naming**: What naming pattern does this project use? (Check `harumi.yaml` naming section)
 
 ## Phase 4a: Downtime Assessment
 
@@ -63,13 +37,13 @@ Common questions to ask the user:
 
 | Resource | Downtime Risk | Data Loss Risk |
 |----------|---------------|----------------|
-| RDS / Cloud SQL / Azure SQL | HIGH (10-30 min) | YES |
-| Redis / Memorystore / Azure Cache | HIGH (5-15 min) | YES (cache) |
-| ECS / Cloud Run / ACI | LOW (1-5 min) | NO |
-| EKS / GKE / AKS Node Group | MEDIUM (5-15 min) | NO |
-| ALB / Cloud LB / App Gateway | MEDIUM (5-10 min) | NO |
-| VPC / Network | CRITICAL | YES |
-| S3 / GCS / Azure Storage | CRITICAL | YES |
+| RDS | HIGH (10-30 min) | YES |
+| ElastiCache Redis | HIGH (5-15 min) | YES (cache) |
+| ECS Fargate | LOW (1-5 min) | NO |
+| EKS Node Group | MEDIUM (5-15 min) | NO |
+| ALB | MEDIUM (5-10 min) | NO |
+| VPC | CRITICAL | YES |
+| S3 | CRITICAL | YES |
 | Security Group / Firewall Rule | LOW | NO |
 | IAM Role / Service Account | LOW | NO |
 | DNS Record | LOW (TTL dependent) | NO |
@@ -96,9 +70,9 @@ Which approach do you prefer?
 
 ### Zero-downtime patterns
 
-**ECS/Cloud Run**: Rolling updates via deployment configuration (maximum_percent = 200, minimum_healthy_percent = 100).
+**ECS**: Rolling updates via deployment configuration (maximum_percent = 200, minimum_healthy_percent = 100).
 
-**EKS/GKE/AKS Node Groups**: Create new group first, cordon/drain old, then remove old using feature flags.
+**EKS Node Groups**: Create new group first, cordon/drain old, then remove old using feature flags.
 
 **Load Balancers**: Use weighted routing to shift traffic gradually.
 
@@ -166,41 +140,6 @@ Which option fits your needs?
 | m5.large node | ~$70 |
 | NAT Gateway (per AZ) | ~$32 + data |
 
-### GCP Pricing Reference (approximate)
-
-**Cloud SQL PostgreSQL**:
-
-| Instance | vCPU | Memory | Monthly |
-|----------|------|--------|---------|
-| db-f1-micro | shared | 0.6 GB | ~$8 |
-| db-g1-small | shared | 1.7 GB | ~$26 |
-| db-custom-2-4096 | 2 | 4 GB | ~$50 |
-| db-custom-2-8192 | 2 | 8 GB | ~$95 |
-
-**GKE**:
-
-| Component | Monthly |
-|-----------|---------|
-| Autopilot (per vCPU) | ~$25 |
-| Standard cluster fee | ~$73 |
-| e2-standard-4 node | ~$97 |
-
-### Azure Pricing Reference (approximate)
-
-**Azure Database for PostgreSQL**:
-
-| Instance | vCPU | Memory | Monthly |
-|----------|------|--------|---------|
-| B1ms | 1 | 2 GB | ~$25 |
-| GP_Gen5_2 | 2 | 10 GB | ~$125 |
-
-**AKS**:
-
-| Component | Monthly |
-|-----------|---------|
-| Control Plane (free tier) | $0 |
-| Standard_D2s_v3 node | ~$70 |
-
 ## Phase 5-6: Implement and Validate
 
 ```bash
@@ -217,7 +156,7 @@ Common validation errors: `Undeclared resource` (check typo), `Missing required 
 ## Phase 7: Plan
 
 ```bash
-terraform plan -var-file=[var_file from .devops.yaml]
+terraform plan -var-file=[var_file from harumi.yaml]
 ```
 
 Red flags in plan output:
@@ -274,7 +213,7 @@ Order of operations:
 1. **Core Infrastructure** first (VPC, DNS, security)
 2. **IAM** second (roles and policies)
 3. **Databases** third (RDS, Redis, etc.)
-4. **Applications** last (ECS, Lambda, Cloud Run, etc.)
+4. **Applications** last (ECS, Lambda, etc.)
 
 When changes span modules, apply core infrastructure first, then refresh dependent modules.
 

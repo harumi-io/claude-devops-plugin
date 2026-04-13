@@ -7,7 +7,7 @@ Security patterns for cloud infrastructure. Read this when configuring security 
 1. **Encryption by default** — All resources with encryption support MUST enable it
 2. **Private by default** — Resources in private subnets/networks unless justified
 3. **Least privilege** — IAM/RBAC policies grant minimum required permissions
-4. **No secrets in code** — All credentials in secrets manager (AWS Secrets Manager, GCP Secret Manager, Azure Key Vault)
+4. **No secrets in code** — All credentials in AWS Secrets Manager
 5. **Defense in depth** — Multiple security layers
 
 ## Secrets Management
@@ -28,24 +28,6 @@ data "aws_secretsmanager_secret_version" "db" {
 }
 ```
 
-### GCP
-
-```hcl
-data "google_secret_manager_secret_version" "db" {
-  secret  = "db-password"
-  project = var.project
-}
-```
-
-### Azure
-
-```hcl
-data "azurerm_key_vault_secret" "db" {
-  name         = "db-password"
-  key_vault_id = var.key_vault_id
-}
-```
-
 ## Storage Security
 
 ### AWS S3
@@ -60,28 +42,6 @@ module "s3_bucket" {
   restrict_public_buckets = true
 
   versioning_enabled = true
-}
-```
-
-### GCP GCS
-
-```hcl
-resource "google_storage_bucket" "this" {
-  uniform_bucket_level_access = true
-  public_access_prevention    = "enforced"
-
-  versioning {
-    enabled = true
-  }
-}
-```
-
-### Azure Storage
-
-```hcl
-resource "azurerm_storage_account" "this" {
-  min_tls_version                 = "TLS1_2"
-  allow_nested_items_to_be_public = false
 }
 ```
 

@@ -9,7 +9,7 @@ module "s3_bucket" {
   source  = "cloudposse/s3-bucket/aws"
   version = "4.5.0"
 
-  namespace = var.naming_namespace   # from .devops.yaml naming.namespace
+  namespace = var.naming_namespace   # from harumi.yaml naming.namespace
   stage     = var.environment
   name      = var.name
 
@@ -20,38 +20,6 @@ module "s3_bucket" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
-}
-```
-
-## GCS Bucket (GCP)
-
-```hcl
-resource "google_storage_bucket" "this" {
-  name          = "${var.project}-${var.environment}-${var.name}"
-  location      = var.region
-  storage_class = "STANDARD"
-
-  uniform_bucket_level_access = true
-  public_access_prevention    = "enforced"
-
-  versioning {
-    enabled = true
-  }
-}
-```
-
-## Azure Storage Account
-
-```hcl
-resource "azurerm_storage_account" "this" {
-  name                     = "${var.prefix}${var.environment}${var.name}"
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  min_tls_version                 = "TLS1_2"
-  allow_nested_items_to_be_public = false
 }
 ```
 
@@ -123,46 +91,6 @@ resource "aws_ecs_service" "this" {
 }
 ```
 
-## Cloud Run Service (GCP)
-
-```hcl
-resource "google_cloud_run_v2_service" "this" {
-  name     = "${var.project}-${var.name}"
-  location = var.region
-
-  template {
-    containers {
-      image = "${var.region}-docker.pkg.dev/${var.project}/${var.repository}/${var.image}:latest"
-
-      resources {
-        limits = {
-          cpu    = var.cpu
-          memory = var.memory
-        }
-      }
-
-      dynamic "env" {
-        for_each = var.environment_variables
-        content {
-          name  = env.value.name
-          value = env.value.value
-        }
-      }
-    }
-
-    scaling {
-      min_instance_count = var.min_instances
-      max_instance_count = var.max_instances
-    }
-
-    vpc_access {
-      connector = var.vpc_connector_id
-      egress    = "PRIVATE_RANGES_ONLY"
-    }
-  }
-}
-```
-
 ## EKS Cluster (AWS)
 
 ```hcl
@@ -197,45 +125,6 @@ module "eks" {
 }
 ```
 
-## GKE Cluster (GCP)
-
-```hcl
-resource "google_container_cluster" "this" {
-  name     = "${var.project}-${var.environment}-gke"
-  location = var.region
-
-  initial_node_count       = 1
-  remove_default_node_pool = true
-
-  network    = var.network
-  subnetwork = var.subnetwork
-
-  private_cluster_config {
-    enable_private_nodes    = true
-    enable_private_endpoint = false
-    master_ipv4_cidr_block  = var.master_cidr
-  }
-}
-
-resource "google_container_node_pool" "primary" {
-  name       = "primary"
-  cluster    = google_container_cluster.this.name
-  location   = var.region
-  node_count = var.node_count
-
-  node_config {
-    machine_type = var.machine_type
-    spot         = var.use_spot
-    disk_size_gb = var.disk_size_gb
-  }
-
-  autoscaling {
-    min_node_count = var.min_nodes
-    max_node_count = var.max_nodes
-  }
-}
-```
-
 ## Remote State Reference
 
 ```hcl
@@ -249,25 +138,6 @@ data "terraform_remote_state" "core" {
   }
 }
 
-# GCP GCS backend
-data "terraform_remote_state" "core" {
-  backend = "gcs"
-  config = {
-    bucket = var.state_bucket
-    prefix = "core-infrastructure"
-  }
-}
-
-# Azure azurerm backend
-data "terraform_remote_state" "core" {
-  backend = "azurerm"
-  config = {
-    resource_group_name  = var.state_rg
-    storage_account_name = var.state_account
-    container_name       = var.state_container
-    key                  = "core-infrastructure.tfstate"
-  }
-}
 ```
 
 ## Feature Flags Pattern

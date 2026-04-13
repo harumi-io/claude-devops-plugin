@@ -2,7 +2,7 @@
 
 Naming standards for infrastructure resources. Read this when naming new resources or resolving naming ambiguities.
 
-The naming pattern is configured in `.devops.yaml` under `naming`. Defaults:
+The naming pattern is configured in `harumi.yaml` under `naming`. Defaults:
 
 ```yaml
 naming:
@@ -25,14 +25,12 @@ module "s3_bucket" {
 # Result: harumi-production-data-lake
 ```
 
-### Common patterns by provider
+### Common patterns
 
-| Provider | Pattern | Example |
-|----------|---------|---------|
-| AWS (CloudPosse) | {namespace}-{stage}-{name} | harumi-production-data-lake |
-| AWS (native) | {app}-{env}-{resource} | myapp-prod-vpc |
-| GCP | {project}-{env}-{name} | myproject-prod-vpc |
-| Azure | {prefix}-{env}-{name} | app-prod-rg |
+| Pattern | Example |
+|---------|---------|
+| CloudPosse: {namespace}-{stage}-{name} | harumi-production-data-lake |
+| Native: {app}-{env}-{resource} | myapp-prod-vpc |
 
 ## IAM Naming
 
