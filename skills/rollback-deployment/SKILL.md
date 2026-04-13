@@ -13,7 +13,7 @@ Ask for these if not provided:
 
 1. **Deployment name** (e.g., "my-api")
 2. **Namespace**
-3. **Target cluster** — from `.devops.yaml` `kubernetes.clusters[]` list
+3. **Target cluster** — from `harumi.yaml` `kubernetes.clusters[]` list
 4. **Target revision** — optional, defaults to previous revision
 
 ## Execution Steps

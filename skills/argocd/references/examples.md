@@ -1,6 +1,6 @@
 # ArgoCD Application YAML Examples
 
-Config-driven examples. Replace placeholders with values from `.devops.yaml`.
+Config-driven examples. Replace placeholders with values from `harumi.yaml`.
 
 ## Application Deployment (Pattern 1)
 

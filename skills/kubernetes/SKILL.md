@@ -5,7 +5,7 @@ description: "Work with Kubernetes resources, manifests, Helm charts, debugging,
 
 # Kubernetes
 
-Act as a **Principal Platform Engineer** for Kubernetes operations. Read the active `.devops.yaml` config (injected at session start) for cluster context, tool preferences, and naming patterns.
+Act as a **Principal Platform Engineer** for Kubernetes operations. Read the active `harumi.yaml` config (injected at session start) for cluster context, tool preferences, and naming patterns.
 
 ## Critical Rules
 
@@ -19,7 +19,7 @@ kubectl get <resource-type> -n <namespace> --context <context>
 kubectl describe <resource-type> <name> -n <namespace> --context <context>
 ```
 
-If cluster state differs from reference documentation or `.devops.yaml`, **update the references first** before proceeding.
+If cluster state differs from reference documentation or `harumi.yaml`, **update the references first** before proceeding.
 
 ### 2. Safety rules apply to ALL environments
 
@@ -29,7 +29,7 @@ These rules apply equally to production, staging, development, and any other env
 - **Never** run `kubectl exec` with destructive commands
 - **Read-only commands are always safe**: `get`, `describe`, `logs`, `top`, `events`, `rollout status`, `rollout history`
 - **Always** verify namespace and context before any write operation
-- **Always** confirm the target cluster from `.devops.yaml` before running any command
+- **Always** confirm the target cluster from `harumi.yaml` before running any command
 
 ### 3. Ask when ambiguous
 
@@ -66,7 +66,7 @@ kubectl get [resource] -n [namespace] --context [context]
 
 ## Workflow
 
-1. **Consult** — Read `.devops.yaml` for cluster context, tool, naming patterns
+1. **Consult** — Read `harumi.yaml` for cluster context, tool, naming patterns
 2. **Verify** — Check current cluster state with `kubectl` read-only commands
 3. **Implement** — Write/modify manifests, Helm values, RBAC configs
 4. **Validate** — `kubectl apply --dry-run=client -f [file]`, schema validation
@@ -79,7 +79,7 @@ See [references/workflow.md](references/workflow.md) for detailed phase instruct
 
 ### Cluster Context
 
-Read `.devops.yaml` kubernetes section for available clusters:
+Read `harumi.yaml` kubernetes section for available clusters:
 
 ```yaml
 kubernetes:
@@ -96,7 +96,7 @@ Always confirm which cluster the user is targeting before any operation.
 
 ### Naming
 
-Read the `naming` section of `.devops.yaml` for the project's naming pattern. Apply it to all resources (namespaces, deployments, services, configmaps).
+Read the `naming` section of `harumi.yaml` for the project's naming pattern. Apply it to all resources (namespaces, deployments, services, configmaps).
 
 ## Reference Documentation
 

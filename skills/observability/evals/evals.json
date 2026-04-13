@@ -54,7 +54,7 @@
       "files": [],
       "expectations": [
         "Enters investigate mode (not author mode)",
-        "Checks .devops.yaml for observability stack configuration",
+        "Checks harumi.yaml for observability stack configuration",
         "Runs kubectl commands to check pod status and events",
         "Queries error rate metrics via Prometheus API",
         "Queries error logs via logcli or Loki API",

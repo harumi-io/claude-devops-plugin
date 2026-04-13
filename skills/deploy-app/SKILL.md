@@ -17,7 +17,7 @@ Ask for these if not provided:
 4. **Health check path** (e.g., `/api/health`, `/health`)
 5. **ECR repository name** (defaults to `harumi-dev-<app-name>` for dev, `harumi-<app-name>` for prod)
 6. **App repo** — the GitHub repository name (e.g., `harumi-io/frontend`)
-7. **Target cluster** — from `.devops.yaml` `kubernetes.clusters[]` list
+7. **Target cluster** — from `harumi.yaml` `kubernetes.clusters[]` list
 
 ## Environment Reference
 
@@ -32,7 +32,7 @@ Follow these steps exactly. Do not skip or reorder.
 
 ### Step 1: Read config
 
-Read `.devops.yaml` for:
+Read `harumi.yaml` for:
 - `kubernetes.gitops_repo` — gitops repo name (for reference only; manifests go in the app repo)
 - `kubernetes.clusters[]` — target cluster context, domain, registry, region
 - `naming` — resource naming pattern

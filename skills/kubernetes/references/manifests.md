@@ -1,6 +1,6 @@
 # Manifest Authoring Patterns
 
-Reference for writing Kubernetes manifests. Use `.devops.yaml` naming patterns for all resources.
+Reference for writing Kubernetes manifests. Use `harumi.yaml` naming patterns for all resources.
 
 ## Deployment
 
@@ -110,7 +110,7 @@ spec:
                   number: 80
 ```
 
-Use `<domain>` from `.devops.yaml` `kubernetes.clusters[].domain`.
+Use `<domain>` from `harumi.yaml` `kubernetes.clusters[].domain`.
 
 ## ConfigMap
 

@@ -26,19 +26,19 @@ In-repo GitOps pattern: manifests live in `deploy/` inside the app repo. The CI 
 |-------------|---------|--------|
 | `<app-name>` | `frontend` | User input |
 | `<namespace>` | `frontend` | Derived from `<app-name>` |
-| `<domain>` | `platform.harumi.io` | `.devops.yaml` `kubernetes.clusters[].domain` |
-| `<registry>` | `715841362904.dkr.ecr.us-east-2.amazonaws.com` | `.devops.yaml` `kubernetes.clusters[].registry` |
+| `<domain>` | `platform.harumi.io` | `harumi.yaml` `kubernetes.clusters[].domain` |
+| `<registry>` | `715841362904.dkr.ecr.us-east-2.amazonaws.com` | `harumi.yaml` `kubernetes.clusters[].registry` |
 | `<ecr-repo>` | `harumi-frontend` | `harumi-<app-name>` |
-| `<aws-region>` | `us-east-2` | `.devops.yaml` `kubernetes.clusters[].region` |
-| `<aws-account-id>` | `715841362904` | `.devops.yaml` or ECR registry URL prefix |
-| `<oidc-role-arn>` | `arn:aws:iam::715841362904:role/harumi-us-east-2-github-cicd-role` | `.devops.yaml` or IAM |
+| `<aws-region>` | `us-east-2` | `harumi.yaml` `kubernetes.clusters[].region` |
+| `<aws-account-id>` | `715841362904` | `harumi.yaml` or ECR registry URL prefix |
+| `<oidc-role-arn>` | `arn:aws:iam::715841362904:role/harumi-us-east-2-github-cicd-role` | `harumi.yaml` or IAM |
 | `<secret-path>` | `harumi/frontend/prod` | Naming: `harumi/<app-name>/prod` |
 | `<app-port>` | `3000` | User input |
 | `<health-path>` | `/api/health` | User input |
-| `<certificate-arn>` | `arn:aws:acm:...` | `.devops.yaml` or ACM console |
+| `<certificate-arn>` | `arn:aws:acm:...` | `harumi.yaml` or ACM console |
 | `<app-repo>` | `frontend` | User input — GitHub repository name (repo part only) |
 | `<org>` | `harumi-io` | User input — GitHub organization name |
-| `<context>` | `eks-prod` | `.devops.yaml` `kubernetes.clusters[].context` |
+| `<context>` | `eks-prod` | `harumi.yaml` `kubernetes.clusters[].context` |
 
 ## Manifest Templates
 

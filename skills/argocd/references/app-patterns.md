@@ -1,10 +1,10 @@
 # ArgoCD Deployment Patterns
 
-Three patterns for deploying applications. All patterns are config-driven — read `.devops.yaml` for cluster details, domains, registries, and gitops repo path.
+Three patterns for deploying applications. All patterns are config-driven — read `harumi.yaml` for cluster details, domains, registries, and gitops repo path.
 
 ## Placeholders
 
-All templates use these placeholders. Replace with values from `.devops.yaml`:
+All templates use these placeholders. Replace with values from `harumi.yaml`:
 
 | Placeholder | Source |
 |-------------|--------|

@@ -4,7 +4,7 @@ Detailed workflow phases for Kubernetes changes. Read this when following the fu
 
 ## Phase 1: Consult Config
 
-Read `.devops.yaml` to determine:
+Read `harumi.yaml` to determine:
 - Which clusters are available and their contexts
 - The naming pattern for resources
 - The gitops tool (argocd or none)
@@ -36,7 +36,7 @@ kubectl top nodes --context <context>
 
 ## Phase 3: Implement
 
-Write manifests following the project's naming conventions from `.devops.yaml`.
+Write manifests following the project's naming conventions from `harumi.yaml`.
 
 Key checks before writing:
 - Does the namespace exist?

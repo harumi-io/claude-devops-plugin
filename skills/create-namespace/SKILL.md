@@ -12,7 +12,7 @@ Create a namespace with associated security and resource controls.
 Ask for these if not provided:
 
 1. **Namespace name** (e.g., "my-app")
-2. **Target cluster** — from `.devops.yaml` `kubernetes.clusters[]` list
+2. **Target cluster** — from `harumi.yaml` `kubernetes.clusters[]` list
 3. **Resource quotas** — ask if custom limits are needed, otherwise use defaults
 
 ## Execution Steps
@@ -40,7 +40,7 @@ Use patterns from the `kubernetes` skill's `references/security.md` and `referen
 
 ### Step 3: Register in ArgoCD (if configured)
 
-If `.devops.yaml` has `kubernetes.gitops: argocd`:
+If `harumi.yaml` has `kubernetes.gitops: argocd`:
 - Create an ArgoCD Application manifest for the namespace resources
 - Place it in the gitops repo's `<cluster-dir>/argocd/` directory
 - Use patterns from the `argocd` skill's `references/examples.md`

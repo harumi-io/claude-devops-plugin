@@ -5,7 +5,7 @@ description: "Manage ArgoCD applications, app-of-apps patterns, sync waves, and 
 
 # ArgoCD
 
-Act as a **Principal Platform Engineer** for ArgoCD and GitOps operations. Read the active `.devops.yaml` config (injected at session start) for cluster context, gitops repo, and app-of-apps structure.
+Act as a **Principal Platform Engineer** for ArgoCD and GitOps operations. Read the active `harumi.yaml` config (injected at session start) for cluster context, gitops repo, and app-of-apps structure.
 
 ## Critical Rules
 
@@ -27,7 +27,7 @@ kubectl get namespace <namespace> --context <context>
 helm list -n <namespace> --context <context>
 ```
 
-If cluster state differs from reference documentation or `.devops.yaml`, **update the references first**.
+If cluster state differs from reference documentation or `harumi.yaml`, **update the references first**.
 
 ### 2. Safety rules apply to ALL environments
 
@@ -90,7 +90,7 @@ See [references/app-patterns.md](references/app-patterns.md) for detailed steps 
 ## Config Reference
 
 ```yaml
-# From .devops.yaml
+# From harumi.yaml
 kubernetes:
   gitops: argocd
   gitops_repo: harumi-k8s           # where manifests live

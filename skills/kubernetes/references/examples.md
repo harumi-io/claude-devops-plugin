@@ -1,10 +1,10 @@
 # Kubernetes YAML Examples
 
-Config-driven examples using `.devops.yaml` values. Replace placeholders with actual config values.
+Config-driven examples using `harumi.yaml` values. Replace placeholders with actual config values.
 
 ## Placeholder Reference
 
-| Placeholder | Source in `.devops.yaml` |
+| Placeholder | Source in `harumi.yaml` |
 |-------------|------------------------|
 | `<app-namespace>` | The application namespace name (e.g., derived from `naming.namespace` and app name) |
 | `<stage>` | `naming.stage` |
