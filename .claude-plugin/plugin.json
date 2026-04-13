@@ -1,7 +1,7 @@
 {
   "name": "harumi-devops-plugin",
   "description": "DevOps skills for infrastructure, Kubernetes, CI/CD, and cloud operations",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "author": {
     "name": "Harumi.io",
     "email": "devops@harumi.io"
@@ -15,8 +15,8 @@
     "terraform",
     "kubernetes",
     "aws",
-    "gcp",
-    "azure",
-    "cicd"
+    "cicd",
+    "argocd",
+    "observability"
   ]
 }
