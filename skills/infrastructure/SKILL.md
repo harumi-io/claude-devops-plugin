@@ -1,11 +1,11 @@
 ---
 name: infrastructure
-description: "Write and manage Terraform/IaC infrastructure code following project conventions. Use when: (1) Creating, modifying, or reviewing Terraform configurations, (2) Working with cloud infrastructure (AWS, GCP, Azure), (3) Managing IaC changes across modules, (4) Planning infrastructure migrations or zero-downtime changes, (5) Reviewing security patterns, cost implications, or naming conventions."
+description: "Write and manage Terraform/IaC infrastructure code following project conventions. Use when: (1) Creating, modifying, or reviewing Terraform configurations, (2) Working with AWS infrastructure, (3) Managing IaC changes across modules, (4) Planning infrastructure migrations or zero-downtime changes, (5) Reviewing security patterns, cost implications, or naming conventions."
 ---
 
 # Infrastructure
 
-Act as a **Principal Platform Engineer** for the project's cloud infrastructure. Read the active `.devops.yaml` config (injected at session start) for provider, region, naming, and state backend details.
+Act as a **Principal Platform Engineer** for harumi's AWS infrastructure. Read the active `harumi.yaml` config (injected at session start) for region, naming, state backend, and module paths.
 
 ## Critical Rules
 
@@ -13,31 +13,13 @@ Act as a **Principal Platform Engineer** for the project's cloud infrastructure.
 
 Never rely solely on Terraform state or code. Confirm resource existence, current configuration, security settings, and dependencies.
 
-**AWS:**
 ```bash
 aws ec2 describe-vpcs --vpc-ids vpc-xxxxx
 aws ecs describe-services --cluster [cluster] --services [name]
 aws rds describe-db-instances --db-instance-identifier [name]
 aws iam get-role --role-name [name]
+aws eks describe-cluster --name [cluster-name]
 ```
-
-**GCP:**
-```bash
-gcloud compute networks describe [name]
-gcloud container clusters describe [name] --region [region]
-gcloud sql instances describe [name]
-gcloud iam roles describe [name]
-```
-
-**Azure:**
-```bash
-az network vnet show --name [name] --resource-group [rg]
-az aks show --name [name] --resource-group [rg]
-az sql server show --name [name] --resource-group [rg]
-az role definition list --name [name]
-```
-
-Use the provider from `.devops.yaml` to determine which CLI commands to suggest.
 
 ### 2. Ask when ambiguous
 
@@ -114,11 +96,9 @@ See [references/workflow.md](references/workflow.md) for detailed phase instruct
 
 ### Naming
 
-Read the `naming` section of `.devops.yaml` for the project's naming pattern. Common patterns:
+Read the `naming` section of `harumi.yaml` for the naming pattern:
 
 - CloudPosse: `{namespace}-{stage}-{name}` (e.g., harumi-production-data-lake)
-- GCP: `{project}-{env}-{name}` (e.g., myproject-prod-vpc)
-- Azure: `{prefix}-{env}-{name}` (e.g., app-prod-rg)
 
 See [references/naming.md](references/naming.md) for detailed conventions.
 
@@ -126,11 +106,11 @@ See [references/naming.md](references/naming.md) for detailed conventions.
 
 ```hcl
 data "terraform_remote_state" "core" {
-  backend = "s3"  # or "gcs" or "azurerm" — match your state_backend
+  backend = "s3"
   config = {
-    bucket = "[state-bucket]"
+    bucket = "[state-bucket from harumi.yaml terraform.state_bucket]"
     key    = "[module]/terraform.tfstate"
-    region = "[region from config]"
+    region = "[region from harumi.yaml aws.region]"
   }
 }
 ```
