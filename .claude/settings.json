@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "harumi-devops-plugin@harumi-devops-marketplace": true,
+    "superpowers@claude-plugins-official": true
+  }
+}
