@@ -35,7 +35,7 @@ The plugin reads a repo config file from the root of the repository it is instal
 **Preferred:** `harumi.yaml`
 **Legacy fallback:** `.devops.yaml` (backward-compatible — loaded automatically when `harumi.yaml` is absent)
 
-The session-start hook loads `harumi.yaml` when present; otherwise it falls back to `.devops.yaml`. It validates all Kubernetes contexts declared in the config against the local kubeconfig and validates other required prerequisites. Any missing required prerequisite is emitted as a `⚠ BLOCKING:` warning in the session context — work must stop until the human resolves it.
+The session-start hook loads `harumi.yaml` when present; otherwise it falls back to `.devops.yaml`. It checks Kubernetes contexts declared in the config against the local kubeconfig and reports their availability. A missing repo config is the only blocking condition — surfaced as `⚠ BLOCKING:` in the session context. Kubernetes access state (missing kubectl, unconfigured contexts, unreadable kubeconfig) is reported as informational or a warning; live cluster access is not assumed.
 
 Create a `harumi.yaml` in your repository root:
 
@@ -183,7 +183,7 @@ Agents are thin wrappers that run a skill in a fresh, isolated context. They ena
 
 ## How It Works
 
-1. **Session start** — The hook loads the bootstrap skill (`using-devops`), reads `harumi.yaml` (or `.devops.yaml` as fallback), validates configured Kubernetes contexts against the local kubeconfig, and checks for drift
+1. **Session start** — The hook loads the bootstrap skill (`using-devops`), reads `harumi.yaml` (or `.devops.yaml` as fallback), reports Kubernetes context availability, and checks for drift
 2. **Drift detection** — Compares `.harumi-last-sync` with current HEAD. If new commits landed, triggers `sync-docs` to update documentation before other work
 3. **Skill triggering** — The bootstrap skill tells the AI when to invoke domain-specific skills based on task context
 4. **Safety rules** — Destructive operations (`apply`, `destroy`, `delete`) always require user confirmation via handoff

@@ -18,11 +18,12 @@ This plugin manages two repositories:
 
 Read the active repo config (injected at session start) for cluster names, contexts, endpoints, and naming conventions. The hook loads `harumi.yaml` when present, otherwise falls back to the legacy `.devops.yaml`. Trust the reported **config source** and any **prerequisite warnings** in the session context over stale docs or examples.
 
-If the session context contains a `## Prerequisites` section with any line starting with `⚠ BLOCKING:`, **stop all work immediately** and ask the user to resolve that prerequisite before continuing. Do not attempt cluster operations, resource lookups, or any step that depends on the blocked resource. The following conditions are always blocking:
-- No repo config found (`harumi.yaml` or `.devops.yaml` absent)
-- `kubectl` not found in PATH when the repo config declares cluster contexts
-- Kubeconfig unavailable or unreadable
-- A configured Kubernetes context is not present in the local kubeconfig
+If the session context contains a `## Prerequisites` section, interpret it as follows:
+- `⚠ BLOCKING:` — stop all work immediately and ask the user to resolve this before continuing. The only blocking condition is a missing repo config, because without it the plugin cannot give accurate project-specific guidance.
+- `⚠ Warning:` — proceed with awareness of the limitation (e.g. kubeconfig is present but unreadable).
+- Any other line — informational; no action required.
+
+Live cluster and AWS access is **not assumed**. Missing `kubectl`, an absent kubeconfig, or locally unconfigured contexts are normal states. The assistant can still produce manifests, Terraform, runbooks, and other guidance without live cluster reads.
 
 ## Drift Detection
 
@@ -223,4 +224,4 @@ The active repo config (loaded at session start) tells you:
 - **Observability endpoints** — Prometheus, Grafana, Loki, Tempo, Alertmanager URLs
 - **Naming pattern** — how resources are named
 
-The hook prefers `harumi.yaml`; if absent it loads the legacy `.devops.yaml`. The session context reports which file was loaded. Any missing required prerequisite — absent config, missing `kubectl`, unreadable kubeconfig, or a declared context not present locally — is surfaced in `## Prerequisites` as a `⚠ BLOCKING:` line. Work must stop and the human must resolve the issue before proceeding.
+The hook prefers `harumi.yaml`; if absent it loads the legacy `.devops.yaml`. The session context reports which file was loaded. Any missing repo config is surfaced as `⚠ BLOCKING:` in `## Prerequisites` — work must stop until the human provides one. Kubernetes access status (kubectl availability, context presence) is reported as informational or `⚠ Warning:` only; live cluster access is not assumed.
