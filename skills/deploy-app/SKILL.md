@@ -55,9 +55,6 @@ argocd app list
 
 # Check if namespace exists
 kubectl get namespace <namespace> --context <context>
-
-# Check for existing ECR repo
-aws ecr describe-repositories --repository-names <ecr-repo> --region <aws-region> 2>/dev/null
 ```
 
 If the app already exists in ArgoCD, report the conflict and ask the user how to proceed (update manifests vs. skip).
@@ -140,8 +137,17 @@ Use the handoff template from the environment's reference file to provide the ex
    - `isolated-prod-test`: `kubectl apply -f argocd-app-prod.yaml`
 
 Remind the user to verify after apply:
+
+**`shared-prod`:**
 ```bash
 argocd app get <app-name>
 kubectl get pods -n <namespace> --context <context>
+curl -k https://<domain><health-path>
+```
+
+**`isolated-prod-test`:**
+```bash
+argocd app get <app-name>-prod-test
+kubectl get pods -n <test-namespace> --context <context>
 curl -k https://<domain><health-path>
 ```

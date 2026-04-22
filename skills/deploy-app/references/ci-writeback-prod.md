@@ -108,6 +108,10 @@ kubectl config get-contexts -o name | rg "^<context>$"
 
 ## Manifest Templates
 
+> **Namespace substitution by rollout shape:**
+> - `shared-prod`: use `<namespace>` (= `<app-name>`, e.g. `frontend`) everywhere `<namespace>` appears below.
+> - `isolated-prod-test`: substitute `<test-namespace>` (= `<app-name>-prod-test`, e.g. `frontend-prod-test`) everywhere `<namespace>` appears below. This ensures all Kubernetes resources land in the dedicated test namespace and do not touch the stable prod namespace.
+
 ### namespace.yaml
 
 ```yaml
