@@ -14,7 +14,7 @@ Keep repo documentation accurate by reading actual code, infrastructure state, a
 
 | Target | Source of Truth | Classification |
 |--------|----------------|----------------|
-| `harumi.yaml` | Terraform files, K8s manifests, cluster state | Generated |
+| `harumi.yaml` / `.devops.yaml` | Terraform files, K8s manifests, cluster state | Generated |
 | `docs/architecture/clusters.md` | Live cluster state across all contexts | Generated |
 | `docs/architecture/services.md` | ArgoCD apps, Helm releases, deployments | Generated |
 | `docs/architecture/infrastructure.md` | Terraform state, modules, outputs | Generated |
@@ -24,6 +24,22 @@ Keep repo documentation accurate by reading actual code, infrastructure state, a
 | `CLAUDE.md` | Repo structure, commands, conventions | Human-authored |
 | `AGENTS.md` | Infrastructure modules, operational context | Human-authored |
 | `docs/runbooks/*` | Operational state changes | Human-authored |
+
+### Config File Resolution
+
+When syncing the repo config target, apply this resolution order:
+
+1. **Both `harumi.yaml` and `.devops.yaml` exist** — treat `harumi.yaml` as canonical; sync it. Ignore `.devops.yaml` as a sync target (it is a legacy alias).
+2. **Only `harumi.yaml` exists** — sync it normally.
+3. **Only `.devops.yaml` exists** — sync against it as the active config. After syncing, append a migration notice to the summary:
+
+   ```
+   ⚠ Migration recommended: this repo uses `.devops.yaml` (legacy name).
+   Rename it to `harumi.yaml` so the plugin hook loads it as the canonical config:
+     mv .devops.yaml harumi.yaml
+   ```
+
+4. **Neither file exists** — emit a BLOCKING warning; the plugin cannot give accurate project-specific guidance without a repo config.
 
 ## Workflow
 
@@ -36,11 +52,11 @@ Read the codebase to understand current state:
 - **Terraform**: Read all `.tf` files. Extract modules, resources, outputs, variables. Note state backend paths.
 - **K8s manifests**: Read manifests in the harumi-k8s repo (if accessible). Extract namespaces, deployments, services, ingresses, ArgoCD Applications.
 - **CI/CD**: Read `.github/workflows/*.yml`. Extract pipeline structure, deployment targets.
-- **Config**: Read current `harumi.yaml` if it exists. Note any values that may need updating.
+- **Config**: Detect the active config file: prefer `harumi.yaml` if it exists; fall back to `.devops.yaml`. Read whichever is present and note any values that may need updating.
 
 ### Step 2: Query Live Cluster State (Read-Only)
 
-Use locally configured kubectl contexts for read-only access. Run these commands for each cluster context defined in `harumi.yaml`:
+Use locally configured kubectl contexts for read-only access. Run these commands for each cluster context defined in the active repo config:
 
 ```bash
 # Namespaces and workloads

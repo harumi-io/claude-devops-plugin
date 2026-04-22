@@ -5,7 +5,7 @@ description: "Query authoring and active incident investigation for observabilit
 
 # Observability
 
-Act as a **Senior SRE / Observability Engineer**. Read the active `harumi.yaml` config (injected at session start) for observability endpoints: Prometheus, Grafana, Loki, Tempo, Alertmanager.
+Act as a **Senior SRE / Observability Engineer**. Read the active repo config (injected at session start) for observability endpoints: Prometheus, Grafana, Loki, Tempo, Alertmanager.
 
 ## Mode Detection
 
@@ -31,7 +31,7 @@ These apply across both modes:
 
 ### Workflow
 
-1. **Read context** — Check `harumi.yaml` for endpoints, scan the project's `docs/references/` for service topology and runbooks
+1. **Read context** — Check the active repo config for endpoints, scan the project's `docs/references/` for service topology and runbooks
 2. **Understand intent** — What metric/log/trace? What threshold? What service?
 3. **Write artifact** — Query, alert rule YAML, or dashboard JSON
 4. **Validate** — Run `promtool check rules` for alert rules, JSON lint for dashboards if available
@@ -59,7 +59,7 @@ These apply across both modes:
 - Dashboard UID pattern: `harumi-[category]-[name]`
 - Datasource: always `type: "prometheus"`, `uid: "prometheus"`
 
-> **Note:** The UID pattern and datasource UID above are Harumi defaults from `harumi.yaml`.
+> **Note:** The UID pattern and datasource UID above are Harumi defaults from the active repo config.
 
 - 24-column grid layout (quarters w:6, thirds w:8, halves w:12, full w:24)
 - Generate both `[name].json` and `[name].configmap.yaml`
@@ -99,7 +99,7 @@ See [references/investigation.md](references/investigation.md) for detailed meth
 ### Workflow
 
 1. **Triage** — Classify the problem: latency, errors, saturation, crash, connectivity
-2. **Read context** — Check `harumi.yaml` for endpoints, scan the project's `docs/references/` for service topology and runbooks
+2. **Read context** — Check the active repo config for endpoints, scan the project's `docs/references/` for service topology and runbooks
 3. **Gather signals** — Run read-only CLI commands across three pillars (metrics, logs, traces)
 4. **Correlate** — Connect metrics anomalies to log patterns to trace spans. Present a timeline.
 5. **Diagnose** — Propose root cause with supporting evidence
@@ -111,7 +111,7 @@ Priority order:
 1. Dedicated CLI if available (`promtool`, `logcli`, `amtool`)
 2. `aws` CLI for AWS-level investigation
 3. `kubectl` for K8s-level investigation
-4. `curl` against observability endpoints (from `harumi.yaml` observability.endpoints)
+4. `curl` against observability endpoints (from the active repo config `observability.endpoints`)
 
 #### Deep Stack (Prometheus/Loki/Tempo)
 

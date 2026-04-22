@@ -13,7 +13,7 @@ Ask for these if not provided:
 
 1. **Deployment name** (e.g., "my-api")
 2. **Namespace**
-3. **Target cluster** — from `harumi.yaml` `kubernetes.clusters[]` list
+3. **Target cluster** — from the active repo config `kubernetes.clusters[]` list
 4. **Target replica count**
 
 ## Execution Steps

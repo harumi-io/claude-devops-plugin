@@ -13,7 +13,7 @@ Ask for these if not provided:
 
 1. **Pod name or selector** (e.g., "my-api-7d9f8b6c5-x2k4j" or "app=my-api")
 2. **Namespace**
-3. **Target cluster** — from `harumi.yaml` `kubernetes.clusters[]` list
+3. **Target cluster** — from the active repo config `kubernetes.clusters[]` list
 
 ## Execution Steps
 
