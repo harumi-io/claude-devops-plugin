@@ -30,6 +30,13 @@ Clone the repository and register the plugin in Cursor Agent chat:
 
 ## Configuration
 
+The plugin reads a repo config file from the root of the repository it is installed into.
+
+**Preferred:** `harumi.yaml`
+**Legacy fallback:** `.devops.yaml` (backward-compatible — loaded automatically when `harumi.yaml` is absent)
+
+The session-start hook loads `harumi.yaml` when present; otherwise it falls back to `.devops.yaml`. It also validates all Kubernetes contexts declared in the config against the local kubeconfig and surfaces any mismatches in the session context so downstream skills avoid referencing unavailable clusters.
+
 Create a `harumi.yaml` in your repository root:
 
 ```yaml
@@ -119,7 +126,7 @@ docs:
     - docs/runbooks/*
 ```
 
-If no `harumi.yaml` exists, the `sync-docs` skill can generate one from your codebase and cluster state.
+If no config file exists, the plugin surfaces a message prompting you to create `harumi.yaml` or `.devops.yaml`. The `sync-docs` skill can generate `harumi.yaml` from your codebase and cluster state.
 
 ## Skills
 
@@ -176,7 +183,7 @@ Agents are thin wrappers that run a skill in a fresh, isolated context. They ena
 
 ## How It Works
 
-1. **Session start** — The hook loads the bootstrap skill (`using-devops`), reads `harumi.yaml`, and checks for drift
+1. **Session start** — The hook loads the bootstrap skill (`using-devops`), reads `harumi.yaml` (or `.devops.yaml` as fallback), validates configured Kubernetes contexts against the local kubeconfig, and checks for drift
 2. **Drift detection** — Compares `.harumi-last-sync` with current HEAD. If new commits landed, triggers `sync-docs` to update documentation before other work
 3. **Skill triggering** — The bootstrap skill tells the AI when to invoke domain-specific skills based on task context
 4. **Safety rules** — Destructive operations (`apply`, `destroy`, `delete`) always require user confirmation via handoff

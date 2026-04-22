@@ -16,7 +16,7 @@ This plugin manages two repositories:
 | `harumi-io/infrastructure` | Terraform IaC (AWS) — VPC, ECS, EKS, RDS, IAM, DNS |
 | `harumi-io/harumi-k8s` | Kubernetes manifests, ArgoCD apps, Helm values, Grafana dashboards |
 
-Read `harumi.yaml` (injected at session start) for cluster names, contexts, endpoints, and naming conventions.
+Read the active repo config (injected at session start) for cluster names, contexts, endpoints, and naming conventions. The hook loads `harumi.yaml` when present, otherwise falls back to the legacy `.devops.yaml`. Trust the reported **config source** and any **kube-context validation warnings** in the session context over stale docs or examples.
 
 ## Drift Detection
 
@@ -209,7 +209,7 @@ When the user request maps to 2+ compatible skills:
 
 ## Configuration
 
-The active `harumi.yaml` config (loaded at session start) tells you:
+The active repo config (loaded at session start) tells you:
 - **AWS account** — account ID, region, alias
 - **Terraform settings** — version, state backend, state bucket, var file, module paths
 - **Clusters** — names, contexts, environments, domains, registries
@@ -217,4 +217,4 @@ The active `harumi.yaml` config (loaded at session start) tells you:
 - **Observability endpoints** — Prometheus, Grafana, Loki, Tempo, Alertmanager URLs
 - **Naming pattern** — how resources are named
 
-Read config values to adapt your guidance to the specific context.
+The hook prefers `harumi.yaml`; if absent it loads the legacy `.devops.yaml`. The session context reports which file was loaded and flags any configured Kubernetes contexts that are missing from the local kubeconfig. If contexts are flagged as missing, do not attempt kubectl operations against them without first asking the user to configure access.

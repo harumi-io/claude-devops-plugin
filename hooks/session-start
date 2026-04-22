@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SessionStart hook for harumi-devops-plugin
-# Loads the bootstrap skill, reads harumi.yaml config, and detects drift
+# Loads the bootstrap skill, reads repo config (harumi.yaml or .devops.yaml), and detects drift
 
 set -euo pipefail
 
@@ -10,16 +10,36 @@ PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # --- Read bootstrap skill ---
 using_devops_content=$(cat "${PLUGIN_ROOT}/skills/using-devops/SKILL.md" 2>&1 || echo "Error reading using-devops skill")
 
-# --- Read harumi.yaml config ---
+# --- Read repo config (prefer harumi.yaml, fall back to .devops.yaml) ---
 user_config=""
-repo_config_path="${PWD}/harumi.yaml"
+repo_config_path=""
+config_source="not found"
 
-if [ -f "$repo_config_path" ]; then
+if [ -f "${PWD}/harumi.yaml" ]; then
+    repo_config_path="${PWD}/harumi.yaml"
     user_config=$(cat "$repo_config_path" 2>/dev/null || true)
     config_source="harumi.yaml"
+elif [ -f "${PWD}/.devops.yaml" ]; then
+    repo_config_path="${PWD}/.devops.yaml"
+    user_config=$(cat "$repo_config_path" 2>/dev/null || true)
+    config_source=".devops.yaml"
 else
-    config_source="not found"
-    user_config="# No harumi.yaml found. Run the sync-docs skill to generate one."
+    user_config="# No repo config found. Create harumi.yaml or .devops.yaml."
+fi
+
+# --- Kube-context validation ---
+kube_warnings=""
+if command -v kubectl &>/dev/null && [ -n "$user_config" ] && [ "$config_source" != "not found" ]; then
+    available_contexts=$(kubectl config get-contexts -o name 2>/dev/null || true)
+    configured_contexts=$(printf '%s' "$user_config" | grep -E '^\s+context:\s+\S' | awk '{print $2}' || true)
+
+    while IFS= read -r ctx; do
+        [ -z "$ctx" ] && continue
+        if ! printf '%s\n' "$available_contexts" | grep -qxF "$ctx"; then
+            kube_warnings="${kube_warnings:+${kube_warnings}
+}- Missing kube context: ${ctx}"
+        fi
+    done <<< "$configured_contexts"
 fi
 
 # --- Drift detection ---
@@ -70,6 +90,10 @@ fi
 
 # --- Build context ---
 config_block="## Active Configuration (source: ${config_source})\n\n\`\`\`yaml\n${user_config}\n\`\`\`"
+
+if [ -n "$kube_warnings" ]; then
+    config_block="${config_block}\n\n## Kube-Context Validation\n\n${kube_warnings}"
+fi
 
 if [ -n "$drift_summary" ]; then
     config_block="${config_block}\n\n## Drift Detection\n\n${drift_summary}"
