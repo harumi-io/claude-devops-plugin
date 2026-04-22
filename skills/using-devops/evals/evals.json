@@ -14,10 +14,12 @@
     {
       "id": 2,
       "prompt": "I don't have a harumi.yaml yet. Can you help me configure the plugin for this repo?",
-      "expected_output": "Recognizes the request to set up the devops config. Invokes the harumi-devops-plugin:setup-devops-config skill.",
+      "expected_output": "Surfaces a ⚠ BLOCKING prerequisite warning because no repo config (harumi.yaml or .devops.yaml) is present. Stops all work and asks the user to provide a config file before continuing.",
       "files": [],
       "expectations": [
-        "Invokes or references the setup-devops-config skill (harumi-devops-plugin:setup-devops-config)"
+        "Emits a ⚠ BLOCKING prerequisite warning for the missing repo config",
+        "Stops all further work and does NOT proceed with any DevOps task",
+        "Asks the user to provide a harumi.yaml or .devops.yaml before continuing"
       ]
     },
     {
