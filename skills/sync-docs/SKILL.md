@@ -84,7 +84,7 @@ Query each live source independently. A failure in one does not block the other.
 Run these commands when the `aws` CLI is present and credentials are available:
 
 ```bash
-# Account identity — confirms account ID and region
+# Account identity — confirms account ID (not region; use aws configure get region for that)
 aws sts get-caller-identity
 
 # EKS clusters — live cluster names, endpoints, and Kubernetes versions
@@ -177,9 +177,8 @@ For each human-authored target:
 [filename] line [N]: stale claim detected
 
   Stale claim:  "[current text in the doc]"
-  Live fact:    "[observed value from AWS or Kubernetes]"
-                (or "repo fact ([AWS/Kubernetes]: repo-only): [value from Terraform/manifests]"
-                 when that source's live access is unavailable)
+  Live fact:    "[observed value from AWS or Kubernetes]"   ← use when live access succeeded for this source
+  Repo fact:    "[value from Terraform or manifests]"       ← use when that source's live access is unavailable
   Proposed edit: [show the diff]
 
 Apply? (yes / skip)

@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Run sync-docs. Live kubectl shows context 'harumi-prod-eks' with ingress domain 'app.harumi.io'. Live AWS shows: aws sts get-caller-identity returns account 987654321098, aws eks describe-cluster returns endpoint 'https://NEWENDPOINT.gr7.us-east-1.eks.amazonaws.com', and aws ecr describe-repositories returns registry URI '987654321098.dkr.ecr.us-east-1.amazonaws.com'. The checked-in harumi.yaml has context 'eks-prod', domain 'harumi.io', account '123456789012', and registry '123456789012.dkr.ecr.us-east-1.amazonaws.com'. Update the repo.",
-      "expected_output": "Detects drift across both AWS-sourced fields (account ID, ECR registry URI, EKS endpoint) and Kubernetes-sourced fields (context name, ingress domain). Treats live AWS and live Kubernetes state as the source of truth for their respective surfaces. Regenerates harumi.yaml using the live-observed values from both sources. Writes the file silently. Summary shows both sources as live.",
+      "expected_output": "Detects drift across both AWS-sourced fields (account ID, ECR registry URI) and Kubernetes-sourced fields (context name, ingress domain). Treats live AWS and live Kubernetes state as the source of truth for their respective surfaces. Regenerates harumi.yaml using the live-observed values from both sources. Writes the file silently. Summary shows both sources as live.",
       "files": [],
       "expectations": [
         "Identifies AWS-side drift: account ID changed from '123456789012' to '987654321098'",
@@ -24,7 +24,7 @@
       "files": [],
       "expectations": [
         "Uses live AWS state (account ID, EKS cluster name, ECR registry URI) for AWS-sourced fields in harumi.yaml",
-        "Does NOT fail or stop because kubectl is unavailable — degrades gracefully for the Kubernetes surface",
+        "Does NOT fail or stop because kubectl is unavailable \u2014 degrades gracefully for the Kubernetes surface",
         "Explicitly reports 'live drift could not be verified for Kubernetes' (or equivalent) in the response or summary",
         "Falls back to repo data (Terraform files, K8s manifests) for Kubernetes-sourced fields such as cluster context names and ingress domains",
         "Does NOT invent Kubernetes cluster contexts, ingress domains, namespace lists, or workload state",
