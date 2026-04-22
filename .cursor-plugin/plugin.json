@@ -2,7 +2,7 @@
   "name": "harumi-devops-plugin",
   "displayName": "Harumi DevOps Plugin",
   "description": "DevOps skills for infrastructure, Kubernetes, CI/CD, and cloud operations",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "author": {
     "name": "Harumi.io",
     "email": "devops@harumi.io"
