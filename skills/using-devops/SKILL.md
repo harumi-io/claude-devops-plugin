@@ -138,7 +138,7 @@ When locally configured kubectl contexts are available, skills may use them for 
 - `kubectl get`, `kubectl describe`, `kubectl logs`, `kubectl top`
 - `argocd app get`, `argocd app list`
 - `helm list`, `helm get values`
-- `curl` against observability endpoints (from `harumi.yaml` observability.endpoints)
+- `curl` against observability endpoints (from the active repo config's `observability.endpoints`)
 
 **Forbidden commands (require handoff to user):**
 - `kubectl apply`, `kubectl delete`, `kubectl edit`, `kubectl patch`, `kubectl create`

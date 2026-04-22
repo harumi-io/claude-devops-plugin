@@ -114,7 +114,7 @@ if [ -f "$repo_config_path" ] && command -v git &>/dev/null && git rev-parse --g
 
             while IFS= read -r file; do
                 case "$file" in
-                    docs/architecture/*|harumi.yaml)
+                    docs/architecture/*|harumi.yaml|.devops.yaml)
                         generated_changed="${generated_changed:+$generated_changed, }$file"
                         ;;
                     README.md|CLAUDE.md|AGENTS.md|docs/runbooks/*)
