@@ -153,7 +153,7 @@ data "terraform_remote_state" "core" {
     #         terraform.var_file but does not store the bucket name.
     bucket = "[state-bucket — see AGENTS.md or terraform backend config]"
     key    = "[module]/terraform.tfstate"
-    region = "[region from active repo config aws.region]"
+    region = "[region from active repo config cloud.region]"
   }
 }
 ```
