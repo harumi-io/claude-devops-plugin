@@ -145,7 +145,10 @@ See [references/naming.md](references/naming.md) for detailed conventions.
 data "terraform_remote_state" "core" {
   backend = "s3"
   config = {
-    bucket = "[state-bucket from active repo config terraform.state_bucket]"
+    # bucket: project convention — read from AGENTS.md or ask the user;
+    #         the active repo config carries terraform.state_backend (s3) and
+    #         terraform.var_file but does not store the bucket name.
+    bucket = "[state-bucket — see AGENTS.md or terraform backend config]"
     key    = "[module]/terraform.tfstate"
     region = "[region from active repo config aws.region]"
   }

@@ -29,7 +29,13 @@ Keep repo documentation accurate by reading actual code, infrastructure state, a
 
 When syncing the repo config target, apply this resolution order:
 
-1. **Both `harumi.yaml` and `.devops.yaml` exist** — treat `harumi.yaml` as canonical; sync it. Ignore `.devops.yaml` as a sync target (it is a legacy alias).
+1. **Both `harumi.yaml` and `.devops.yaml` exist** — treat `harumi.yaml` as canonical; sync it. Flag `.devops.yaml` as migration debt in the summary:
+
+   ```
+   ⚠ Migration debt: both `harumi.yaml` and `.devops.yaml` are present.
+   `.devops.yaml` is a legacy alias and should be removed:
+     rm .devops.yaml
+   ```
 2. **Only `harumi.yaml` exists** — sync it normally.
 3. **Only `.devops.yaml` exists** — sync against it as the active config. After syncing, append a migration notice to the summary:
 
