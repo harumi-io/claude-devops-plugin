@@ -118,7 +118,8 @@ When the user **explicitly authorizes** a mutation for operational recovery (e.g
 ## Ingress Recreation Handoff
 
 ### Pre-flight checks
-kubectl get ingress <name> -n <namespace> --context <context> -o yaml   # save output as backup
+# Export the current manifest as a local backup before touching anything
+kubectl get ingress <name> -n <namespace> --context <context> -o yaml > ingress-<name>-backup.yaml
 
 ### Step 1 — Delete the existing Ingress
 kubectl delete ingress <name> -n <namespace> --context <context>
@@ -129,7 +130,7 @@ kubectl apply -f <manifest-file> --context <context> -n <namespace>
 ### Rollback
 If the new ALB does not become healthy within 5 minutes:
   kubectl delete ingress <name> -n <namespace> --context <context>
-  kubectl apply -f <backup-file> --context <context> -n <namespace>
+  kubectl apply -f ingress-<name>-backup.yaml --context <context>
 
 ### Verification
 kubectl get ingress <name> -n <namespace> --context <context>
@@ -164,10 +165,16 @@ kubectl get pods -n <namespace> --context <context>
 ### Pre-flight checks
 kubectl get secret <secret-name> -n <target-namespace> --context <context>   # should return NotFound
 
-### Step 1 — Copy secret from source namespace
-kubectl get secret <secret-name> -n <source-namespace> --context <context> -o yaml \
-  | sed 's/namespace: <source-namespace>/namespace: <target-namespace>/' \
-  | kubectl apply -f - --context <context>
+### Step 1 — Generate a sanitized manifest (strips server-managed metadata)
+kubectl get secret <secret-name> -n <source-namespace> --context <context> -o json \
+  | jq '{apiVersion: .apiVersion, kind: .kind, type: .type,
+          metadata: {name: .metadata.name, namespace: "<target-namespace>"},
+          data: .data}' \
+  > secret-<secret-name>-<target-namespace>.yaml
+# Review the generated file before applying
+
+### Step 2 — Apply
+kubectl apply -f secret-<secret-name>-<target-namespace>.yaml --context <context>
 
 ### Rollback
 kubectl delete secret <secret-name> -n <target-namespace> --context <context>
@@ -175,6 +182,9 @@ kubectl delete secret <secret-name> -n <target-namespace> --context <context>
 ### Verification
 kubectl get secret <secret-name> -n <target-namespace> --context <context>
 kubectl describe secret <secret-name> -n <target-namespace> --context <context>
+
+### Clean up
+rm secret-<secret-name>-<target-namespace>.yaml
 ```
 
 **Rule:** Only use these step-by-step patterns when the user has explicitly authorized the recovery action. For all other write operations, use the standard generic handoff.

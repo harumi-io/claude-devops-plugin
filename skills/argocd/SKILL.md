@@ -75,14 +75,12 @@ When rolling out a new version of an app, use `targetRevision` to gate traffic a
 
 ### Step 1 — Point at a feature branch for validation
 
-Edit the ArgoCD Application manifest and set `targetRevision` to the feature branch:
+Edit the ArgoCD Application manifest and set `targetRevision` to the feature branch. **Only `targetRevision` changes — `repoURL` and `path` remain exactly as they are.**
 
 ```yaml
 spec:
   source:
-    repoURL: https://github.com/harumi-io/<app-repo>
     targetRevision: feature/<branch-name>   # temporary; reverts to main after validation
-    path: deploy-dev
 ```
 
 Provide this as a handoff — do not apply directly.
@@ -91,6 +89,8 @@ Provide this as a handoff — do not apply directly.
 
 After the user applies the change, run these read-only checks in order:
 
+**Required gates** (always run):
+
 ```bash
 # 1. Sync status
 argocd app get <app-name>
@@ -98,14 +98,18 @@ argocd app get <app-name>
 # 2. Pod health
 kubectl get pods -n <namespace> --context <context>
 
-# 3. Workflow write-back (if the app triggers Argo Workflows)
-kubectl get workflows -n <namespace> --context <context>
-
-# 4. External reachability
+# 3. External reachability
 curl -sI https://<app-domain>/healthz
 ```
 
-All four gates must pass before promoting.
+**Conditional gate** (run only if the app triggers Argo Workflows):
+
+```bash
+# 4. Workflow write-back
+kubectl get workflows -n <namespace> --context <context>
+```
+
+All applicable gates must pass before promoting.
 
 ### Step 3 — Move targetRevision back to main
 
