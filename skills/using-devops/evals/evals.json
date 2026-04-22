@@ -30,6 +30,30 @@
         "References the safety rule prohibiting direct terraform apply",
         "Provides a handoff block with the apply command for the user to run"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Session context reports config source as .devops.yaml (legacy). The repo has no harumi.yaml. I want to deploy a new service to the dev cluster.",
+      "expected_output": "Recognises .devops.yaml as the valid legacy config source. Does NOT emit a blocking prerequisite warning. Reads cluster info from .devops.yaml and proceeds to invoke the deploy-app skill.",
+      "files": [],
+      "expectations": [
+        "Treats .devops.yaml as a valid config source without blocking the session",
+        "Does NOT treat the absence of harumi.yaml as a BLOCKING condition",
+        "Reads cluster context, registry, and domain values from .devops.yaml",
+        "Invokes or references harumi-devops-plugin:deploy-app to proceed with the deployment"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Session context shows: configured kube context is 'eks-prod' but kubectl config get-contexts reports the local context is named 'harumi-prod-eks'. I want to scale the frontend deployment.",
+      "expected_output": "Recognises the context name mismatch as a non-blocking warning, not a blocker. Surfaces the discrepancy clearly and provides the corrected kubectl --context flag using the locally available name. Invokes scale-deployment.",
+      "files": [],
+      "expectations": [
+        "Does NOT treat the context name mismatch as a BLOCKING condition",
+        "Flags the mismatch as a Warning (non-blocking), not a BLOCKING prerequisite",
+        "Uses the locally available context name 'harumi-prod-eks' in any generated kubectl commands",
+        "Invokes or references harumi-devops-plugin:scale-deployment to complete the request"
+      ]
     }
   ]
 }

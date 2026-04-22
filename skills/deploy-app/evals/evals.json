@@ -1,0 +1,58 @@
+{
+  "skill_name": "deploy-app",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Deploy the 'payments' app to prod. During the preflight checks, the Secrets Manager secret 'harumi/payments/prod' does not exist — aws secretsmanager get-secret-value returns a ResourceNotFoundException.",
+      "expected_output": "Runs the preflight checks, detects that the Secrets Manager secret is missing, reports the failure clearly, and stops before generating any manifests. Provides the exact aws secretsmanager create-secret command the user must run to resolve the blocker.",
+      "files": [],
+      "expectations": [
+        "Runs aws secretsmanager get-secret-value for the secret path harumi/payments/prod",
+        "Detects the ResourceNotFoundException and treats it as a preflight failure",
+        "Does NOT generate any Kubernetes manifests or CI workflow files",
+        "Reports the missing secret clearly and stops work until it is resolved",
+        "Provides the exact aws secretsmanager create-secret command (or equivalent) for the user to create the secret"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Deploy the 'frontend' app to prod. The Secrets Manager secret 'harumi/frontend/prod' exists but when we list its keys with jq 'keys', the output does not include NEXT_PUBLIC_SUPABASE_ANON_KEY. The app's ExternalSecret references that key.",
+      "expected_output": "Runs the preflight checks, detects that the required key NEXT_PUBLIC_SUPABASE_ANON_KEY is absent from the secret, reports the missing key clearly, and stops before generating manifests. Provides the exact aws secretsmanager put-secret-value or update-secret command needed to add the missing key.",
+      "files": [],
+      "expectations": [
+        "Runs aws secretsmanager get-secret-value and pipes to jq 'keys' to inspect the secret contents",
+        "Identifies that NEXT_PUBLIC_SUPABASE_ANON_KEY is missing from the returned keys",
+        "Does NOT generate any Kubernetes manifests or CI workflow files",
+        "Reports the missing key as a preflight blocker and stops work",
+        "Provides the exact aws secretsmanager command to add NEXT_PUBLIC_SUPABASE_ANON_KEY to the secret"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Deploy the 'harumi-api' app to prod. During preflight, aws ecr describe-repositories returns a RepositoryNotFoundException for 'harumi-harumi-api'.",
+      "expected_output": "Runs the preflight checks, detects the missing ECR repository, reports the failure clearly, and stops before generating any manifests. Provides the exact aws ecr create-repository command the user must run to resolve the blocker.",
+      "files": [],
+      "expectations": [
+        "Runs aws ecr describe-repositories --repository-names harumi-harumi-api",
+        "Detects the RepositoryNotFoundException and treats it as a preflight failure",
+        "Does NOT generate any Kubernetes manifests or CI workflow files",
+        "Reports the missing ECR repository clearly and stops work until it is resolved",
+        "Provides the exact aws ecr create-repository command for the user to create the repository"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Deploy the 'frontend' app to prod using the isolated-prod-test rollout shape. The deployment shape is isolated-prod-test, targeting branch 'feature/payments-v2'.",
+      "expected_output": "Generates argocd-app-prod.yaml (not argocd-app.yaml) at the repo root with targetRevision set to the feature branch. Generates .github/workflows/cd-eks-prod.yaml (not cd-eks.yaml). Sets destination.namespace to 'frontend-prod-test'. All deploy/ manifests use 'frontend-prod-test' as the namespace.",
+      "files": [],
+      "expectations": [
+        "Creates argocd-app-prod.yaml at the repo root, not argocd-app.yaml",
+        "Sets targetRevision to 'feature/payments-v2' in argocd-app-prod.yaml",
+        "Sets destination.namespace to 'frontend-prod-test' in argocd-app-prod.yaml",
+        "Creates .github/workflows/cd-eks-prod.yaml, not cd-eks.yaml",
+        "All namespace: fields in deploy/ manifests use 'frontend-prod-test', not 'frontend'",
+        "Does NOT modify or overwrite argocd-app.yaml if it already exists"
+      ]
+    }
+  ]
+}

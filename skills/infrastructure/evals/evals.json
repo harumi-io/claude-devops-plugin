@@ -39,6 +39,20 @@
         "Explicitly states it cannot run apply directly",
         "Provides a handoff block showing the exact terraform apply command for the user"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "terraform plan output shows drift in module.vpc and module.rds (resources we are not changing today). I only want to apply changes to module.s3_artifacts. Use target='module.s3_artifacts'.",
+      "expected_output": "Acknowledges the unrelated drift in module.vpc and module.rds without acting on it. Generates a targeted apply command using -target=module.s3_artifacts (unquoted flag value, not target='module.s3_artifacts'). Includes a warning that using -target skips dependency validation.",
+      "files": [],
+      "expectations": [
+        "Does NOT include module.vpc or module.rds in the apply command",
+        "Uses -target=module.s3_artifacts (flag syntax) rather than target='module.s3_artifacts' (shell assignment syntax)",
+        "Generates a handoff block with terraform apply -target=module.s3_artifacts -var-file=prod.tfvars",
+        "Notes that unrelated drift in module.vpc and module.rds will not be resolved by this apply",
+        "Warns that -target skips cross-resource dependency validation",
+        "Does NOT run terraform apply directly"
+      ]
     }
   ]
 }
