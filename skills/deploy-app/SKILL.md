@@ -109,6 +109,7 @@ Using the templates in the environment's reference file, create these files in t
 **For prod (`isolated-prod-test`):**
 - `deploy/namespace.yaml`, `deploy/configmap.yaml`, `deploy/externalsecret.yaml` (if secrets needed), `deploy/deployment.yaml`, `deploy/service.yaml`, `deploy/ingress.yaml`
 - `argocd-app-prod.yaml` (repo root — NOT inside `deploy/`); `targetRevision: <feature-branch>`; `destination.namespace: <app-name>-prod-test`
+- All `namespace:` fields in the generated `deploy/` manifests must use `<test-namespace>` (`<app-name>-prod-test`), not `<namespace>`. See the namespace substitution note in `references/ci-writeback-prod.md`.
 
 ### Step 5: Generate CI workflow
 
