@@ -4,59 +4,62 @@
     {
       "id": 1,
       "prompt": "Deploy the 'payments' app to prod. App port: 8000. Health check path: /api/health. App repo: harumi-io/payments. Target cluster: eks-prod. During the preflight checks, the Secrets Manager secret 'harumi/payments/prod' does not exist — aws secretsmanager get-secret-value returns a ResourceNotFoundException.",
-      "expected_output": "Runs the preflight checks, detects that the Secrets Manager secret is missing, reports the failure clearly, and stops before generating any manifests. Provides the exact aws secretsmanager create-secret command the user must run to resolve the blocker.",
+      "expected_output": "Runs the preflight checks, detects that the Secrets Manager secret is missing, reports the failure clearly, and stops before generating any manifests.",
       "files": [],
       "expectations": [
         "Runs aws secretsmanager get-secret-value for the secret path harumi/payments/prod",
         "Detects the ResourceNotFoundException and treats it as a preflight failure",
         "Does NOT generate any Kubernetes manifests or CI workflow files",
-        "Reports the missing secret clearly and stops work until it is resolved",
-        "Provides the exact aws secretsmanager create-secret command (or equivalent) for the user to create the secret"
+        "Reports the missing secret clearly and stops work until it is resolved"
       ]
     },
     {
       "id": 2,
       "prompt": "Deploy the 'frontend' app to prod. App port: 3000. Health check path: /health. App repo: harumi-io/frontend. Target cluster: eks-prod. The Secrets Manager secret 'harumi/frontend/prod' exists but when we list its keys with jq 'keys', the output does not include NEXT_PUBLIC_SUPABASE_ANON_KEY. The app's ExternalSecret references that key.",
-      "expected_output": "Runs the preflight checks, detects that the required key NEXT_PUBLIC_SUPABASE_ANON_KEY is absent from the secret, reports the missing key clearly, and stops before generating manifests. Provides the exact aws secretsmanager put-secret-value or update-secret command needed to add the missing key.",
+      "expected_output": "Runs the preflight checks, detects that the required key NEXT_PUBLIC_SUPABASE_ANON_KEY is absent from the secret, reports the missing key clearly, and stops before generating manifests.",
       "files": [],
       "expectations": [
         "Runs aws secretsmanager get-secret-value and pipes to jq 'keys' to inspect the secret contents",
         "Identifies that NEXT_PUBLIC_SUPABASE_ANON_KEY is missing from the returned keys",
         "Does NOT generate any Kubernetes manifests or CI workflow files",
-        "Reports the missing key as a preflight blocker and stops work",
-        "Provides the exact aws secretsmanager command to add NEXT_PUBLIC_SUPABASE_ANON_KEY to the secret"
+        "Reports the missing key as a preflight blocker and stops work"
       ]
     },
     {
       "id": 3,
       "prompt": "Deploy the 'harumi-api' app to prod. App port: 8080. Health check path: /api/health. App repo: harumi-io/harumi-api. Target cluster: eks-prod. During preflight, aws ecr describe-repositories returns a RepositoryNotFoundException for 'harumi-harumi-api'.",
-      "expected_output": "Runs the preflight checks, detects the missing ECR repository, reports the failure clearly, and stops before generating any manifests. Provides the exact aws ecr create-repository command the user must run to resolve the blocker.",
+      "expected_output": "Runs the preflight checks, detects the missing ECR repository, reports the failure clearly, and stops before generating any manifests.",
       "files": [],
       "expectations": [
         "Runs aws ecr describe-repositories --repository-names harumi-harumi-api",
         "Detects the RepositoryNotFoundException and treats it as a preflight failure",
         "Does NOT generate any Kubernetes manifests or CI workflow files",
-        "Reports the missing ECR repository clearly and stops work until it is resolved",
-        "Provides the exact aws ecr create-repository command for the user to create the repository"
+        "Reports the missing ECR repository clearly and stops work until it is resolved"
       ]
     },
     {
       "id": 4,
       "prompt": "Deploy the 'frontend' app to prod. App port: 3000. Health check path: /health. App repo: harumi-io/frontend. Target cluster: eks-prod. Deployment shape: isolated-prod-test. ArgoCD app filename: argocd-app-prod.yaml. CI workflow filename: cd-eks-prod.yaml. Initial targetRevision: feature/payments-v2.",
-      "expected_output": "Runs Step 2 cluster inspection (argocd app list, kubectl get namespace) and all Step 3 preflight checks before generating any manifests. Only after preflight passes does it generate argocd-app-prod.yaml at the repo root (not argocd-app.yaml) with targetRevision set to the feature branch, .github/workflows/cd-eks-prod.yaml (not cd-eks.yaml), destination.namespace 'frontend-prod-test', and all deploy/ manifests using 'frontend-prod-test' as the namespace.",
+      "expected_output": "Runs Step 2 cluster inspection and all Step 3 preflight checks before generating manifests. After preflight passes, generates argocd-app-prod.yaml at the repo root with targetRevision 'feature/payments-v2' and destination.namespace 'frontend-prod-test', all deploy/ manifests with namespace 'frontend-prod-test', and .github/workflows/cd-eks-prod.yaml. Runs the Step 6 branch protection bypass directly (does not hand it off). Provides a Step 7 handoff including kubectl apply -f argocd-app-prod.yaml and argocd app get frontend-prod-test verification.",
       "files": [],
       "expectations": [
         "Runs argocd app list to check for an existing conflicting ArgoCD application before generating manifests (Step 2)",
         "Runs kubectl get namespace frontend-prod-test to check whether the namespace already exists (Step 2)",
         "Runs aws secretsmanager get-secret-value for the secret path harumi/frontend/prod as a preflight check (Step 3)",
         "Runs aws ecr describe-repositories --repository-names harumi-frontend for the prod ECR repository as a preflight check (Step 3)",
+        "Checks that the OIDC role exists via aws iam get-role as a preflight check (Step 3)",
+        "Checks that the ArgoCD repo secret exists in-cluster via kubectl get secret -n argocd as a preflight check (Step 3)",
+        "Checks that the target cluster context exists locally via kubectl config get-contexts as a preflight check (Step 3)",
         "Does NOT generate any manifests until all preflight checks pass",
         "Creates argocd-app-prod.yaml at the repo root, not argocd-app.yaml",
         "Sets targetRevision to 'feature/payments-v2' in argocd-app-prod.yaml",
         "Sets destination.namespace to 'frontend-prod-test' in argocd-app-prod.yaml",
         "Creates .github/workflows/cd-eks-prod.yaml, not cd-eks.yaml",
         "All namespace: fields in deploy/ manifests use 'frontend-prod-test', not 'frontend'",
-        "Does NOT modify or overwrite argocd-app.yaml if it already exists"
+        "Does NOT modify or overwrite argocd-app.yaml if it already exists",
+        "Runs the branch protection bypass script directly for the feature branch 'feature/payments-v2' (Step 6) — does NOT hand it off to the user",
+        "Provides a handoff block containing kubectl apply -f argocd-app-prod.yaml (Step 7)",
+        "Includes argocd app get frontend-prod-test in the post-apply verification commands (Step 7)"
       ]
     }
   ]

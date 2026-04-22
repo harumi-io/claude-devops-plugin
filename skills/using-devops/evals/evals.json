@@ -34,13 +34,13 @@
     {
       "id": 4,
       "prompt": "Session context reports config source as .devops.yaml (legacy). The repo has no harumi.yaml. I want to deploy a new service to the dev cluster.",
-      "expected_output": "Recognises .devops.yaml as the valid legacy config source. Does NOT emit a blocking prerequisite warning. Announces available skills and indicates the session is ready for work.",
+      "expected_output": "Recognises .devops.yaml as the valid legacy config source. Does NOT emit a blocking prerequisite warning. Invokes harumi-devops-plugin:deploy-app in response to the deploy request.",
       "files": [],
       "expectations": [
         "Treats .devops.yaml as a valid config source without blocking the session",
         "Does NOT treat the absence of harumi.yaml as a BLOCKING condition",
         "Does NOT emit a ⚠ BLOCKING prerequisite warning",
-        "Indicates the session is ready for DevOps work (e.g. announces skills or asks how to proceed)"
+        "Invokes or references harumi-devops-plugin:deploy-app in response to the deploy request"
       ]
     },
     {
