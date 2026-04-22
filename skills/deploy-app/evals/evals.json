@@ -40,7 +40,7 @@
     {
       "id": 4,
       "prompt": "Deploy the 'frontend' app to prod. App port: 3000. Health check path: /health. App repo: harumi-io/frontend. Target cluster: eks-prod. Deployment shape: isolated-prod-test. ArgoCD app filename: argocd-app-prod.yaml. CI workflow filename: cd-eks-prod.yaml. Initial targetRevision: feature/payments-v2.",
-      "expected_output": "Runs Step 2 cluster inspection and all Step 3 preflight checks before generating manifests. After preflight passes, generates argocd-app-prod.yaml at the repo root with targetRevision 'feature/payments-v2' and destination.namespace 'frontend-prod-test', all deploy/ manifests with namespace 'frontend-prod-test', and .github/workflows/cd-eks-prod.yaml. Runs the Step 6 branch protection bypass directly (does not hand it off). Provides a Step 7 handoff including kubectl apply -f argocd-app-prod.yaml and argocd app get frontend-prod-test verification.",
+      "expected_output": "Runs Step 2 cluster inspection and all Step 3 preflight checks before generating manifests. After preflight passes, generates argocd-app-prod.yaml at the repo root with targetRevision 'feature/payments-v2' and destination.namespace 'frontend-prod-test', all deploy/ manifests with namespace 'frontend-prod-test', and .github/workflows/cd-eks-prod.yaml. Runs the Step 6 branch protection bypass directly (does not hand it off). Provides a Step 7 handoff that includes pushing manifests to the app repo, kubectl apply -f argocd-app-prod.yaml, and the full isolated-prod-test post-apply verification: argocd app get frontend-prod-test, kubectl get pods -n frontend-prod-test, and curl to the health endpoint.",
       "files": [],
       "expectations": [
         "Runs argocd app list to check for an existing conflicting ArgoCD application before generating manifests (Step 2)",
@@ -58,8 +58,11 @@
         "All namespace: fields in deploy/ manifests use 'frontend-prod-test', not 'frontend'",
         "Does NOT modify or overwrite argocd-app.yaml if it already exists",
         "Runs the branch protection bypass script directly for the feature branch 'feature/payments-v2' (Step 6) — does NOT hand it off to the user",
-        "Provides a handoff block containing kubectl apply -f argocd-app-prod.yaml (Step 7)",
-        "Includes argocd app get frontend-prod-test in the post-apply verification commands (Step 7)"
+        "Handoff includes a step to push manifests to the app repo (Step 7)",
+        "Handoff includes kubectl apply -f argocd-app-prod.yaml to register the ArgoCD app (Step 7)",
+        "Post-apply verification includes argocd app get frontend-prod-test (Step 7)",
+        "Post-apply verification includes kubectl get pods -n frontend-prod-test --context eks-prod (Step 7)",
+        "Post-apply verification includes a curl command to the health endpoint (Step 7)"
       ]
     }
   ]
