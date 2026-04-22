@@ -35,7 +35,7 @@ The plugin reads a repo config file from the root of the repository it is instal
 **Preferred:** `harumi.yaml`
 **Legacy fallback:** `.devops.yaml` (backward-compatible — loaded automatically when `harumi.yaml` is absent)
 
-The session-start hook loads `harumi.yaml` when present; otherwise it falls back to `.devops.yaml`. It also validates all Kubernetes contexts declared in the config against the local kubeconfig and surfaces any mismatches in the session context so downstream skills avoid referencing unavailable clusters.
+The session-start hook loads `harumi.yaml` when present; otherwise it falls back to `.devops.yaml`. It validates all Kubernetes contexts declared in the config against the local kubeconfig and validates other required prerequisites. Any missing required prerequisite is emitted as a `⚠ BLOCKING:` warning in the session context — work must stop until the human resolves it.
 
 Create a `harumi.yaml` in your repository root:
 

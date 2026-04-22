@@ -223,4 +223,4 @@ The active repo config (loaded at session start) tells you:
 - **Observability endpoints** — Prometheus, Grafana, Loki, Tempo, Alertmanager URLs
 - **Naming pattern** — how resources are named
 
-The hook prefers `harumi.yaml`; if absent it loads the legacy `.devops.yaml`. The session context reports which file was loaded and flags any configured Kubernetes contexts that are missing from the local kubeconfig. If contexts are flagged as missing, do not attempt kubectl operations against them without first asking the user to configure access.
+The hook prefers `harumi.yaml`; if absent it loads the legacy `.devops.yaml`. The session context reports which file was loaded. Any missing required prerequisite — absent config, missing `kubectl`, unreadable kubeconfig, or a declared context not present locally — is surfaced in `## Prerequisites` as a `⚠ BLOCKING:` line. Work must stop and the human must resolve the issue before proceeding.
