@@ -35,36 +35,46 @@ if [ "$config_source" != "not found" ] && [ -n "$user_config" ]; then
     if ! command -v kubectl &>/dev/null; then
         kube_validation="Kube-context validation skipped: kubectl not found in PATH."
     else
-        available_contexts=$(kubectl config get-contexts -o name 2>/dev/null || true)
-        # Extract context values resilient to common YAML shapes:
-        #   context: eks-prod
-        #   context: "eks-prod"
-        #   context: 'eks-prod'
-        #   - context: eks-prod   (list-item form)
-        configured_contexts=$(printf '%s' "$user_config" \
-            | grep -E '^\s*-?\s*context:\s*\S' \
-            | sed 's/.*context:[[:space:]]*//' \
-            | sed 's/[[:space:]]*#.*//' \
-            | sed 's/[[:space:]]*$//' \
-            | sed "s/^['\"]//; s/['\"]$//" \
-            || true)
+        # Capture exit code separately — a non-zero exit means kubeconfig is
+        # unavailable or unreadable, which is a blocking prerequisite failure,
+        # not a normal "context missing" result.
+        # Capture exit code without letting set -e abort the script on failure.
+        kubectl_exit=0
+        available_contexts=$(kubectl config get-contexts -o name 2>/dev/null) || kubectl_exit=$?
 
-        missing=""
-        while IFS= read -r ctx; do
-            [ -z "$ctx" ] && continue
-            if ! printf '%s\n' "$available_contexts" | grep -qxF "$ctx"; then
-                missing="${missing:+${missing}
-}- Missing kube context: ${ctx}"
-            fi
-        done <<< "$configured_contexts"
-
-        if [ -n "$missing" ]; then
-            kube_validation="$missing"
-        elif [ -n "$configured_contexts" ]; then
-            kube_validation="All configured contexts are available locally."
+        if [ $kubectl_exit -ne 0 ]; then
+            kube_validation="⚠ BLOCKING: kubectl exists but kubeconfig is unavailable or unreadable (kubectl config get-contexts exited ${kubectl_exit}). All cluster operations are blocked. Clarify kubeconfig access with the user before proceeding."
         else
-            kube_validation="No contexts configured in repo config."
-        fi
+            # Extract context values resilient to common YAML shapes:
+            #   context: eks-prod
+            #   context: "eks-prod"
+            #   context: 'eks-prod'
+            #   - context: eks-prod   (list-item form)
+            configured_contexts=$(printf '%s' "$user_config" \
+                | grep -E '^\s*-?\s*context:\s*\S' \
+                | sed 's/.*context:[[:space:]]*//' \
+                | sed 's/[[:space:]]*#.*//' \
+                | sed 's/[[:space:]]*$//' \
+                | sed "s/^['\"]//; s/['\"]$//" \
+                || true)
+
+            missing=""
+            while IFS= read -r ctx; do
+                [ -z "$ctx" ] && continue
+                if ! printf '%s\n' "$available_contexts" | grep -qxF "$ctx"; then
+                    missing="${missing:+${missing}
+}- Missing kube context: ${ctx}"
+                fi
+            done <<< "$configured_contexts"
+
+            if [ -n "$missing" ]; then
+                kube_validation="$missing"
+            elif [ -n "$configured_contexts" ]; then
+                kube_validation="All configured contexts are available locally."
+            else
+                kube_validation="No contexts configured in repo config."
+            fi
+        fi  # end: kubectl_exit check
     fi
 fi
 

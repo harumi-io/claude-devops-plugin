@@ -18,6 +18,8 @@ This plugin manages two repositories:
 
 Read the active repo config (injected at session start) for cluster names, contexts, endpoints, and naming conventions. The hook loads `harumi.yaml` when present, otherwise falls back to the legacy `.devops.yaml`. Trust the reported **config source** and any **kube-context validation warnings** in the session context over stale docs or examples.
 
+If the session context contains a line starting with `⚠ BLOCKING:`, **stop all work immediately** and ask the user to resolve the prerequisite before continuing. Do not attempt cluster operations, context lookups, or any step that depends on the blocked resource.
+
 ## Drift Detection
 
 If the drift detection section below reports drift, invoke `harumi-devops-plugin:sync-docs` **before** proceeding with any other work. This ensures documentation is up to date before making further changes.
