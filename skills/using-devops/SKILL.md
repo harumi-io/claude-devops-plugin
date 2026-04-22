@@ -29,6 +29,8 @@ Live cluster and AWS access is **not assumed**. Missing `kubectl`, an absent kub
 
 If the drift detection section below reports drift, invoke `harumi-devops-plugin:sync-docs` **before** proceeding with any other work. This ensures documentation is up to date before making further changes.
 
+When `sync-docs` runs, it prefers **live AWS and Kubernetes state** as the source of truth for deployed reality — if locally configured kubectl contexts and AWS CLI access are reachable. When live access is not available, `sync-docs` falls back to repo-only data and explicitly reports that live drift could not be verified. Do not assume live access is present for every session.
+
 ## Available Skills
 
 Use the Skill tool to invoke these when triggered:

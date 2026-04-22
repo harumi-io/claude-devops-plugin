@@ -189,6 +189,15 @@ Agents are thin wrappers that run a skill in a fresh, isolated context. They ena
 4. **Safety rules** — Destructive operations (`apply`, `destroy`, `delete`) always require user confirmation via handoff
 5. **Parallel agents** — For multi-domain tasks, agents dispatch work to isolated contexts that run concurrently
 
+## Source of Truth for Generated Files
+
+Generated files such as `harumi.yaml` and the architecture docs (`docs/architecture/*.md`) are always refreshed from the **best available source of truth**:
+
+- **Live AWS and Kubernetes state wins when reachable** — Terraform outputs, AWS resource attributes, and `kubectl` query results override anything stored in the repo. `harumi.yaml` is a generated projection of real infrastructure and must be rewritten whenever cluster contexts, domains, registries, or other live values drift from the checked-in file.
+- **Repo data is used when live access is unavailable** — Terraform source, K8s manifests, and CI/CD workflows serve as the fallback. When this path is taken, the sync summary explicitly states "live drift could not be verified" and no cloud or cluster state is invented.
+
+Human-authored files (`README.md`, `CLAUDE.md`, `AGENTS.md`, runbooks) are never modified without showing the stale claim, the live or repo fact, the proposed edit, and receiving explicit user approval.
+
 ## Managed Repositories
 
 The plugin is aware of two repositories:

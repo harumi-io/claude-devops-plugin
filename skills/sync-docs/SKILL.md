@@ -10,6 +10,18 @@ Keep repo documentation accurate by reading actual code, infrastructure state, a
 - **Generated docs** — auto-updated silently (no prompt needed)
 - **Human-authored docs** — proposed edits shown to user for approval
 
+## Source of Truth
+
+Apply this priority order when determining the authoritative value for any field:
+
+1. **Live AWS and Kubernetes state** (highest priority) — when reachable, live state is the source of truth for *deployed reality*. Terraform outputs, AWS resource attributes, `kubectl` query results, and cluster contexts override anything stored in the repo.
+2. **Repository files** — Terraform source, K8s manifests, and CI/CD workflows are the source of truth for *intended configuration*. Use these when live access is unavailable, or to detect divergence between intent and reality.
+3. **Nothing invented** — if a value cannot be determined from live state or the repo, omit it and note the gap. Never fabricate cloud or cluster state.
+
+**Drift** means generated artifacts (e.g. `harumi.yaml`, architecture docs) must be refreshed to reflect observed reality. For human-authored docs, mismatches between doc claims and observed reality must be proposed to the user — never silently applied.
+
+**When live access is unavailable** — fall back to repo-only sync, explicitly report "live drift could not be verified", and do not invent cloud or cluster state.
+
 ## Targets
 
 | Target | Source of Truth | Classification |
@@ -82,9 +94,10 @@ kubectl get pods -n monitoring --context <context> 2>/dev/null || echo "monitori
 ```
 
 **If kubectl is unavailable or contexts are not configured:**
-- Log: "Cluster access unavailable — proceeding with repo-only data. Cluster-derived docs (clusters.md, services.md, networking.md) will be incomplete."
+- Log: "Live cluster access unavailable — proceeding with repo-only data. Live drift could not be verified. Cluster-derived docs (clusters.md, services.md, networking.md) will be incomplete."
 - Continue with Steps 3 and 4 using only repo-scanned data.
 - Do NOT fail or stop.
+- Do NOT invent cloud or cluster state — omit fields that cannot be determined and note the gap.
 
 **NEVER run write commands.** Allowed: `get`, `describe`, `logs`, `top`. Forbidden: `apply`, `delete`, `edit`, `patch`, `create`.
 
@@ -96,6 +109,14 @@ For each generated target:
 2. If the target file exists, diff against current content
 3. If changes detected, write the file silently (no user prompt)
 4. If no changes, skip
+
+**`harumi.yaml` is a generated projection.** It must be rewritten whenever any of the following drift from the checked-in file:
+- Terraform outputs (e.g. cluster endpoint, registry URL, state bucket)
+- Live AWS resources (e.g. account ID, region, EKS cluster names, ECR registries)
+- Live Kubernetes cluster contexts or domains (from `kubectl config get-contexts` or ingress queries)
+- ArgoCD gitops repo or app-of-apps paths
+
+When drift is detected in `harumi.yaml`, regenerate it from the best available source — live AWS/Kubernetes state if reachable, otherwise repo data — and write it silently as part of the generated-doc update. Note in the Step 5 summary which source was used (live or repo-only).
 
 After all generated docs are updated, write the current git HEAD to `.harumi-last-sync`:
 
@@ -111,16 +132,23 @@ For each human-authored target:
 1. Read the current file content
 2. Compare claims in the doc against the current state gathered in Steps 1-2
 3. Identify stale or inaccurate sections (e.g., wrong cluster count, outdated commands, missing services)
-4. For each stale section, present the proposed edit:
+4. For each stale section, present the drift-review decision block:
 
 ```
-[filename] line [N] says "[current text]" but the current state is [new state].
-Proposed edit: [show the diff]
+[filename] line [N]: stale claim detected
+
+  Stale claim:  "[current text in the doc]"
+  Live fact:    "[observed value from AWS/Kubernetes]"
+                (or "repo fact: [value from Terraform/manifests]" when live access is unavailable)
+  Proposed edit: [show the diff]
+
 Apply? (yes / skip)
 ```
 
 5. Wait for user response before proceeding to the next proposed edit
 6. If user says "skip", move to the next edit without changing the file
+
+**Never change a human-authored file without showing this block and receiving explicit approval.**
 
 ### Step 5: Summary
 
@@ -133,7 +161,8 @@ Updated: [list of generated files that changed]
 Unchanged: [list of generated files with no drift]
 Proposed: [N] edits to [human-authored files] ([M] applied, [K] skipped)
 Skipped: [human-authored files with no drift detected]
-Cluster access: [available / unavailable]
+Cluster access: [available / unavailable — live drift could not be verified]
+harumi.yaml source: [live AWS+Kubernetes / repo-only]
 ```
 
 ## What NOT to Do

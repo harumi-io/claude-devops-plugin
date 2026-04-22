@@ -1,0 +1,33 @@
+{
+  "skill_name": "sync-docs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run sync-docs. Live kubectl shows context 'harumi-prod-eks' with domain 'app.harumi.io', but the checked-in harumi.yaml has context 'eks-prod' and domain 'harumi.io'. AWS CLI confirms the EKS cluster endpoint has changed. Update the repo.",
+      "expected_output": "Detects that live Kubernetes cluster context and domain differ from the checked-in harumi.yaml. Treats live state as the source of truth. Regenerates harumi.yaml with the values observed from live AWS and Kubernetes. Writes the file silently as a generated artifact. Summary reports 'harumi.yaml source: live AWS+Kubernetes'.",
+      "files": [],
+      "expectations": [
+        "Identifies the drift between live Kubernetes state (context 'harumi-prod-eks', domain 'app.harumi.io') and the checked-in harumi.yaml values",
+        "Treats live AWS and Kubernetes state as the source of truth for deployed reality",
+        "Regenerates harumi.yaml using the live-observed context name and domain",
+        "Writes harumi.yaml silently without prompting the user (it is a generated artifact)",
+        "Does NOT keep the stale 'eks-prod' context or 'harumi.io' domain in the regenerated file",
+        "Summary includes 'harumi.yaml source: live AWS+Kubernetes' or equivalent wording indicating live state was used"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run sync-docs. kubectl is not installed and AWS CLI returns 'Unable to locate credentials'. Sync what you can.",
+      "expected_output": "Detects that live cluster and AWS access are unavailable. Falls back to repo-only data (Terraform files, K8s manifests, CI/CD workflows). Explicitly reports that live drift could not be verified. Does NOT invent cloud or cluster state. Summary states cluster access as unavailable and notes that live drift could not be verified.",
+      "files": [],
+      "expectations": [
+        "Detects that kubectl is unavailable and AWS CLI has no credentials",
+        "Does NOT fail or stop — degrades gracefully to repo-only sync",
+        "Explicitly reports 'live drift could not be verified' (or equivalent wording) in the response or summary",
+        "Does NOT invent AWS resource attributes, cluster contexts, domains, or registry URLs",
+        "Proceeds with repo-scanned data (Terraform files, K8s manifests) as the fallback source",
+        "Summary shows cluster access as unavailable and notes the live-drift limitation"
+      ]
+    }
+  ]
+}
